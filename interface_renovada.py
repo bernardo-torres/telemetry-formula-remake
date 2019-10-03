@@ -1,4 +1,3 @@
-self.tps
 import PyQt5
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -16,7 +15,7 @@ import numpy as np
 import serial
 from serial import Serial
 from serial import SerialException
-
+from classData import Data
 from interface_generated import *
 
 # inicializações
@@ -25,10 +24,6 @@ save = 0  # variável que define se salva dados no txt 0= não salva, 1=salva
 stop = 1  # variável que define se o programa está pausado/parado 0= não parado, 1= parado
 arq = 0
 arq_laptime = 0
-array_temp = np.array([]).astype('int')
-array_fuel_p = np.array([]).astype('int')
-array_oil_p = np.array([]).astype('int')
-array_battery = np.array([]).astype('int')
 array_leitura = np.array([]).astype('int')
 x = np.array([]).astype('int')
 y = np.array([]).astype('int')
@@ -37,101 +32,12 @@ divisor = 1
 array_lap = np.array([]).astype('int')
 aux_time = np.array([0]).astype('int')
 # Vetores para mostrar últimos dados recebidos (TEMPORARIO)
-buffer1 = np.array([]).astype('int')
-buffer2 = np.array([]).astype('int')
-buffer3 = np.array([]).astype('int')
-buffer4 = np.array([]).astype('int')
-buffer5 = np.array([]).astype('int')
-buffer6 = np.array([]).astype('int')
+buf = np.zeros(6)
 sec = 0
 cont = 0
 exe_time = 0
 
 porta = serial.Serial()
-
-
-# Classe values é utilizada para armazenar valores das grandezas apos a separacao
-# delas dentro do buffer e processamento
-class data:
-    def __init__(self):
-        self.acelY = 0
-        self.acelX = 0
-        self.acelZ = 0
-        self.velDD = 0
-        self.velT = 0
-        self.sparkCut = 0
-        self.suspPos = 0
-        self.time = 0
-        self.oleoP = 0
-        self.fuelP = 0
-        self.tps = 0
-        self.rearBrakeP = 0
-        self.frontBrakeP = 0
-        self.volPos = 0
-        self.beacon = 0
-        self.correnteBat = 0
-        self.rpm = 0
-        self.time2 = 0
-        self.batVoltage = 0
-        self.ect = 0
-        self.releBomba = 0
-        self.releVent = 0
-        self.pduTemp = 0
-        self.tempDiscoD = 0
-        self.tempDiscoE = 0
-        self.time3 = 0
-
-    def updateP1(self, buffer):
-        if ((int(buffer[0]) == 1) and (len(buffer) == 15)):  # testa se é o pacote 1 e está completo
-            self.acelX = (int(buffer[2]) << 8) + int(buffer[3])  # recebe o valor contido na lista de dados(leitura) em suas respectivas posições e realiza as operações de deslocamento e soma binária
-            self.acelX = round(float(x_accel / 16384), 3)  #
-            self.acelY = (int(buffer[4]) << 8) + int(buffer[5])
-            self.acelY = round(float(y_accel / 16384), 3)
-            self.acelZ = (int(buffer[6]) << 8) + int(buffer[7])
-            self.acelZ = round(float(z_accel / 16384), 3)
-            self.velDD = int(buffer[8])
-            self.velT = int(buffer[9])
-            self.sparkCut = ((buffer[10]) & 128) >> 7
-            self.suspPos = (((buffer[10]) & 127) << 8) + int(buffer[11])
-            self.time = ((buffer[12]) << 8) + int(buffer[13])
-            self.time = 25 * self.time
-
-    def updateP2(self, buffer):
-        if ((int(buffer[0]) == 2) and (len(buffer) == 22)):  # testa se é o pacote 2 e está completo
-            self.oleoP = (int(buffer[2]) << 8) + int(buffer[3])
-            oself.oleoP = round(float(self.oleoP * 0.001), 2)
-            self.fuelP = (int(buffer[4]) << 8) + int(buffer[5])
-            self.fuelP = round(float(self.fuelP * 0.001), 2)
-            self.tps = (int(buffer[6]) << 8) + int(buffer[7])
-            #buffer = round(float(buffer * 0.1), 2)
-            self.rearBrakeP = (int(buffer[8]) << 8) + int(buffer[9])
-            self.rearBrakeP = round(self.rearBrakeP * 0.02536, 1)
-            self.frontBrakeP = (int(buffer[10]) << 8) + int(buffer[11])
-            self.frontBrakeP = round(self.frontBrakeP * 0.02536, 1)
-            self.volPos = (int(buffer[12]) << 8) + int(buffer[13])
-            self.volPos = round(((self.volPos - (ui.spinBox_WheelPosMin.value())) / ((ui.spinBox_WheelPosMax.value() - ui.spinBox_WheelPosMin.value()) / 240) - 120), 2)
-            self.beacon = (int(buffer[14])) >> 7
-            self.correnteBat = ((int(buffer[14]) & 127) << 8) + int(buffer[15])
-            self.rpm = (int(buffer[16]) << 8) + int(buffer[17])
-            self.time2 = (int(buffer[18]) << 8) + int(buffer[19])
-            self.time2 = 25 * time2
-
-    def updateP3(self):
-        if ((int(buffer[0]) == 3) and (len(buffer) == 15)):  # testa se é o pacote 3 e está completo
-            self.ect = (int(buffer[(ui.spinBox_IndexEngineTemperature.value())]) << 8) + int(buffer[(ui.spinBox_IndexEngineTemperature.value()) + 1])
-            self.ect = round(float(self.ect * 0.1), 2)
-            self.batVoltage = ((buffer[(ui.spinBox_IndexBattery.value()) + 1]) << 8) + (buffer[(ui.spinBox_IndexBattery.value()) + 2])
-            self.batVoltage = round(float(battery * 0.01), 2)
-            self.releBomba = (int(buffer[(ui.spinBox_IndexFuelPumpRelay.value()) + 2]) & 128) >> 7
-            self.releVent = (int(buffer[(ui.spinBox_IndexFanRelay.value()) + 1]) & 32) >> 5
-            self.pduTemp = (buffer[(ui.spinBox_IndexRelayBoxTemperature.value())] << 8) + buffer[(ui.spinBox_IndexRelayBoxTemperature.value()) + 1]
-            self.pduTemp = round(float(self.pduTemp), 2)
-            self.tempDiscoE = (buffer[(ui.spinBox_IndexBreakTempRear.value()) + 1] << 8) + (buffer[(ui.spinBox_IndexBreakTempRear.value()) + 2])
-            self.tempDiscoE = round(float(self.tempDiscoE), 2)
-            self.tempDiscoD = (buffer[(ui.spinBox_IndexBreakTempFront.value()) + 2] << 8) + (buffer[(ui.spinBox_IndexBreakTempFront.value()) + 3])
-            self.tempDiscoD = round(float(self.tempDiscoD), 2)
-            self.time3 = (int(buffer[(ui.spinBox_IndexTime3.value()) + 3]) << 8) + int(buffer[(ui.spinBox_IndexTime3.value()) + 4])
-            self.time3 = 25 * self.time3
 
 
 # A função update_values atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
@@ -220,8 +126,10 @@ def start_program():
         arquivo = "tempos_de_volta_" + str(now.hour) + "_" + str(now.minute) + ".txt"
         arq_laptime = open(arquivo, 'w')
         print("0.45")
-        program()
-        print("1") # chama a função programa e passa por parãmetro o valor de stop
+        data = Data()
+        program(data)
+        print("1")
+        # chama a função programa e passa por parãmetro o valor de stop
 # O erro de porta serial é analisado pela exceção serial.SerialException. Esse erro é tratado pausando o programa e
 # utilizando uma caixa de diálogo, a qual informa ao usuário o erro encontrado
     except serial.serialutil.SerialException:
@@ -235,13 +143,13 @@ def start_program():
 
 
 # Le buffer da porta serial
-def read_all():
+def read_all(bufferSize, firstByteValue):
     while True:
         while (porta.inWaiting() == 0):
             pass
         read_buffer = b''
         firstByte = porta.read()
-        if int.from_bytes(firstByte, byteorder='big') == 1:
+        if int.from_bytes(firstByte, byteorder='big') == firstByteValue:
             read_buffer += firstByte
             # Le o segundo byte de inicio
             a = porta.read()
@@ -254,10 +162,10 @@ def read_all():
         else:
             print('Erro na leitura1')
     while True:
-        byte = porta.read(size=13)  # dado com formato de byte
+        byte = porta.read(size=bufferSize - 2)  # dado com formato de byte
         read_buffer += byte
 
-        if(len(read_buffer) == 15):
+        if(len(read_buffer) == bufferSize):
             break
         else:
             print('AQQQQ')
@@ -266,27 +174,53 @@ def read_all():
 
 # Função que executa o programa. Essa função verifica se o programa deve ser executado. Em caso afirmativo, é feita
 # a leitura da porta serial e é chamada a função que inicia o tratamento dos dados
-def program():
+def program(data):
     global stop, sec
     try:
         if (stop == 0):
             # A variável sec recebe o primeiro tempo
             # A função tempo retorna um valor o qual refere-se a quantos segundos se passaram desde um data pre-estabelecida pelo SO
             # Sendo assim, para obter o tempo de execução deve-se fazer tempofinal-tempoinicial. Isso é feito após a outra chamada da função tempo, a qual retorna o tempo final
-            print("2")
+            print("Linha 276")
             sec = time()
-            print("3")
+            print("Linha 278")
 
-            buffer = read_all()
+            buffer = read_all(15, 1)
             print(buffer)
             test = np.zeros(15)
-            for i in range(0, 15):
+            for i in range(0, len(buffer)):
                 test[i] = buffer[i]
             print(test)
-            updateLabel(test)
+            packIdent = buffer[0]
+
+            updateLabel(test, data)
             # chamada da função updateLabel para analisar os dados recebidos atualizar os mostradores da interface
     finally:
-        QtCore.QTimer.singleShot(tim, program)
+        QtCore.QTimer.singleShot(tim, program(data))
+
+
+def updatePlot(data):
+    # as linhas a seguir plotam os gráficos selecionados atráves dos checkBox e define as cores de cada gráfico.
+    # Os gráficos são compostos pelos últimos 50 pontos do dado contidos nos arrays de cada dado.
+
+    data.rollArrays()
+
+    ui.graphicsView_EngineData.clear()
+    if ui.checkBox_EngineTemperature.isChecked() == 1:
+        ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayTemp, pen='r')
+    if ui.checkBox_FuelPressure.isChecked() == 1:
+        ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayFuelP, pen='g')
+    if ui.checkBox_Voltage.isChecked() == 1:
+        ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayBattery, pen='b')
+    if ui.checkBox_OilPressure.isChecked() == 1:
+        ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayOilP, pen='y')
+
+
+def vectorToString(line, delimiter):
+
+    string = delimiter.join(str(x) for x in line)
+    string = string + '\n'
+    return string
 
 
 # Função que recebe novos dados, analisa sua consistência, verifica qual pacote foi recebido, realiza operações
@@ -295,107 +229,38 @@ def program():
 # A função recebe o vetor "leitura", realiza as operações binárias, deslocamento e soma, e cria o vetor "lista".
 # Dessa forma, o vetor "leitura" contém os bytes convertidos para inteiro, porém não os valores das variáveis que trabalhamos.
 # Já o vetor "lista", possui os valores corretos para serem mostrados
-def updateLabel(buffer):
-    lista = np.array([]).astype('int')  # cria uma lista chamada "lista"
-    lista = np.append(lista, buffer[0])
-    print("5")
+def updateLabel(buffer, data):
     if ui.lineEdit_CalibrationConstant.text() == "":  # Caso a constante de calibração não seja definida é utilizado o valor 1
         constante = 1
     else:
         constante = float(ui.lineEdit_CalibrationConstant.text())
-    # print("tamanho", leitura.size)
-    # print("tipo", type(leitura))
-    # print(leitura)
-    try:
-        global aux_time, array_lap, array_oil_p, array_temp, array_battery, buffer1, buffer2, buffer3, buffer4, buffer5, buffer6, sec, cont, exe_time
+    global aux_time, array_lap, array_oil_p, array_temp, array_battery, sec, cont, exe_time, arq, buf
 
-            if save == 1:
-                string = str(lista[0]) + ' ' + str(lista[1]) + ' ' + str(lista[2]) + ' ' + str(lista[3]) + ' ' + str(lista[4]) + ' ' + str(lista[5]) + ' ' + str(lista[6]) + ' ' + str(lista[7]) + ' ' + str(lista[8])
-            # print("string", string)
-                arq.write(string)  # escreve no arquivo txt a lista de dados recebidos
-                arq.write("\n")  # escreve no arquivo txt uma quebra de linha
+    if buffer[0] == 1:
+        data.updateP1Data(buffer)
+        update_p1(data)
+    elif buffer[0] == 2:
+        data.updateP2Data(buffer)
+        update_p2(data)
+    elif buffer[0] == 3:
+        data.updateP3Data(buffer)
+        update_p3(data)
+    elif buffer[0] == 4:
+        data.updateP4Data(buffer)
+        update_p4(data)
 
-            ui.lineEdit_CurrentWheelPos.setText(str(wheel_pos))
+    if save == 1:
+        string = vectorToString(buffer, ' ')
+        arq.write(string)  # escreve no arquivo txt a lista de dados recebidos
 
-
-            if ((beacon == 1) and ((time2 - aux_time[aux_time.size - 1]) >= 200)):
-                if (aux_time.size == 0):
-                    aux_time = np.append(aux_time, time2)
-                else:
-                    array_lap = np.append(array_lap, time2 - aux_time[aux_time.size - 1])
-                    aux_time = np.append(aux_time, time2)
-                    laptime = str(array_lap[array_lap.size - 1])
-                    arq_laptime.write(laptime)
-                    arq_laptime.write("\n")
-
-            array_oil_p = np.append(array_oil_p, oil_p)
-            # print(lista)
-            if save == 1:
-                string = str(lista[0]) + ' ' + str(lista[1]) + ' ' + str(lista[2]) + ' ' + str(lista[3]) + ' ' + str(lista[4]) + ' ' + str(lista[5]) + ' ' + str(lista[6]) + ' ' + str(lista[7]) + ' ' + str(lista[8]) + ' ' + str(lista[9])+ ' ' + str(lista[10])
-            # print("string", string)
-                arq.write(string)
-                arq.write("\n")
-
-
-            array_temp = np.append(array_temp, temp)
-            array_battery = np.append(array_battery, battery)
-            # print(lista)
-            if save == 1:
-                string = str(lista[0]) + ' ' + str(lista[1]) + ' ' + str(lista[2]) + ' ' + str(lista[3]) + ' ' + str(lista[4]) + ' ' + str(lista[5]) + ' ' + str(lista[6]) + ' ' + str(lista[7]) + ' ' + str(lista[8])
-                # print("string", string)
-                arq.write(string)
-                arq.write("\n")
-
-        elif ((int(buffer[0]) == 4) and (buffer.size == 30)):  # testa se é o pacote 4 e está completo
-            p1_ext = ((buffer[2] << 16) + (buffer[3] << 8) + buffer[4])
-            lista = np.append(lista, p1_ext)
-            p2_ext = ((buffer[5] << 16) + (buffer[6] << 8) + buffer[7])
-            lista = np.append(lista, p2_ext)
-            p3_ext = ((buffer[8] << 16) + (buffer[9] << 8) + buffer[10])
-            lista = np.append(lista, p3_ext)
-            p4_ext = ((buffer[11] << 16) + (buffer[12] << 8) + buffer[13])
-            lista = np.append(lista, p4_ext)
-            p5_ext = ((buffer[14] << 16) + (buffer[15] << 8) + buffer[16])
-            lista = np.append(lista, p5_ext)
-            p6_ext = ((buffer[17] << 16) + (buffer[18] << 8) + buffer[19])
-            lista = np.append(lista, p6_ext)
-            p7_ext = ((buffer[20] << 16) + (buffer[21] << 8) + buffer[22])
-            lista = np.append(lista, p7_ext)
-            p8_ext = ((buffer[23] << 16) + (buffer[24] << 8) + buffer[25])
-            lista = np.append(lista, p8_ext)
-            time4 = ((buffer[26] << 8) + (buffer[27]))
-            lista = np.append(lista, time4)
-            time4 = 25 * time4
-            # array_temp= np.append(array_temp,temp)
-            if save == 1:
-                string = str(lista[0]) + ' ' + str(lista[1]) + ' ' + str(lista[2]) + ' ' + str(lista[3]) + ' ' + str(lista[4]) + ' ' + str(lista[5]) + ' ' + str(lista[6]) + ' ' + str(lista[7]) + ' ' + str(lista[8]) + ' ' + str(lista[9])
-            # print("string", string)
-                arq.write(string)
-                arq.write("\n")
-        else:
-            print("Erro")
-    except:
-        print("Erro 2")
-    # as linhas a seguir plotam os gráficos selecionados atráves dos checkBox e define as cores de cada gráfico.
-    # Os gráficos são compostos pelos últimos 50 pontos do dado contidos nos arrays de cada dado.
-    ui.graphicsView_EngineData.clear()
-    if ui.checkBox_EngineTemperature.isChecked() == 1:
-        ui.graphicsView_EngineData.plot(array_temp[array_temp.size - 50:array_temp.size], pen='r')
-    if ui.checkBox_FuelPressure.isChecked() == 1:
-        ui.graphicsView_EngineData.plot(array_fuel_p[array_fuel_p.size - 50:array_fuel_p.size], pen='g')
-    if ui.checkBox_Voltage.isChecked() == 1:
-        ui.graphicsView_EngineData.plot(array_battery[array_battery.size - 50:array_battery.size], pen='b')
-    if ui.checkBox_OilPressure.isChecked() == 1:
-        ui.graphicsView_EngineData.plot(array_oil_p[array_oil_p.size - 50:array_oil_p.size], pen='y')
+    updatePlot(data)
     # as linhas a seguir atualizam o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
     # Caso o número de listas recebidas seja menor que 6, são mostradas apenas estas
-    buffer6 = buffer5
-    buffer5 = buffer4
-    buffer4 = buffer3
-    buffer3 = buffer2
-    buffer2 = buffer1
-    buffer1 = buffer
-    ui.textBrowser_Buffer.setText(str(buffer1) + "\n" + str(buffer2) + "\n" + str(buffer3) + "\n" + str(buffer4) + "\n" + str(buffer5) + "\n" + str(buffer6))
+    buf = np.roll(buf, -1)
+    buf[5] = buffer
+    string = vectorToString(buffer, '\n')
+    ui.textBrowser_Buffer.setText(string)
+
     if (stop == 0):
         # As seguintes linhas contam o tempo de uma execução do programa e quantas execuções foram realizadas
         time_init = sec
@@ -408,47 +273,36 @@ def updateLabel(buffer):
             print("tempo médio:", exe_time / cont)
             print("qtd de execuções", cont)
 
+
   # Função que atualiza os mostradores relacionados aos dados do pacote 1
   # Pacote 1: X_Accelerometer, Y_Accelerometer, Z_Accelerometer, Sparcut Relay, Speed, Suspension Course, time
   # Para atualizar as células da tabela tableWidget_Package1 é necessário definir o valor da variável item como o
   # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
-def update_p1():
-    item = QTableWidgetItem(str(x_accel))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package1.setItem(0, 1, item)
+def update_p1(data):
+
+    elements = len(data.p1Order)
+    for key, i in zip(data.p1Order, range(0, elements)):
+        item = QTableWidgetItem(str(data.dic[key]))
+        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        ui.tableWidget_Package1.setItem(i, 1, item)
+
     x = np.append(x,x_accel)  # concatena o valor de x_accel no vetor x e este é utilizado para plotar o diagramaGG na função update_diagramagg
-    item = QTableWidgetItem(str(y_accel))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package1.setItem(1, 1, item)
+
     y = np.append(y,y_accel)  # concatena o valor de y_accel no vetor y e este é utilizado para plotar o diagramaGG na função update_diagramagg
-    item = QTableWidgetItem(str(z_accel))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package1.setItem(2, 1, item)
-    item = QTableWidgetItem(str(vel_dianteira))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package1.setItem(3, 1, item)
-    item = QTableWidgetItem(str(vel_traseira))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package1.setItem(4, 1, item)
-    item = QTableWidgetItem(str(rele_sparkcut))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package1.setItem(5, 1, item)
-    if (int(rele_sparkcut) == 1):
+
+    if (int(data.dic['sparkCut']) == 1):
         ui.radioButton_SparkcutRelay.setChecked(False)
     else:
         ui.radioButton_SparkcutRelay.setChecked(True)
-    item = QTableWidgetItem(str(susp))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package1.setItem(6, 1, item)
-    item = QTableWidgetItem(str(time1))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package1.setItem(7, 1, item)
-    if (array_lap.size == 1):
-        ui.lineEdit_LastLap.setText(str(array_lap[array_lap.size - 1]))
-    elif (array_lap.size > 1):
-        ui.lineEdit_LastLap.setText(str(array_lap[array_lap.size - 1]))
-        ui.lineEdit_LastLap2.setText(str(array_lap[array_lap.size - 2]))
+
+    # if (array_lap.size == 1):
+    #     ui.lineEdit_LastLap.setText(str(array_lap[array_lap.size - 1]))
+    # elif (array_lap.size > 1):
+    #     ui.lineEdit_LastLap.setText(str(array_lap[array_lap.size - 1]))
+    #     ui.lineEdit_LastLap2.setText(str(array_lap[array_lap.size - 2]))
+
     update_diagramagg(ui.graphicsView_DiagramaGG, w1, s, x, y)  # Chamada da função update_diagramagg
+
 
   # função que meeostra o diagrama gg
 def update_diagramagg(self, graphicsView_DiagramaGG, w1, s, x, y):
@@ -462,163 +316,115 @@ def update_diagramagg(self, graphicsView_DiagramaGG, w1, s, x, y):
   # Pacote 2: Oil pressure, fuel pressure, TPS, break pressure(rear), break pressute(front), wheel position, beacon, current, time
   # Para atualizar as células da tabela tableWidget_Package2 é necessário definir o valor da variável item como o
   # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
-def update_p2(oil_p, pcomb, tps, p_freio_d, p_freio_t, wheel_pos, beacon, current,rpm, time2):
-    item = QTableWidgetItem(str(beacon))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(0, 1, item)
-    item = QTableWidgetItem(str(p_freio_d))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(1, 1, item)
-    if ((p_freio_t + p_freio_d) != 0):  # Verificação necessária para que não ocorra divisão por zero
-        ui.progressBar_FrontBreakBalance.setValue(100 * p_freio_d / (p_freio_t + p_freio_d))  # porcentagem da pressão referente ao freio dianteiro
-    ui.progressBar_FrontBreakPressure.setValue(p_freio_d)
-    ui.label_65.setText(str(p_freio_d))
-    item = QTableWidgetItem(str(p_freio_t))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(2, 1, item)
-    if ((p_freio_t + p_freio_d) != 0):  # Verificação necessária para que não ocorra divisão por zero
-        ui.progressBar_RearBreakBalance.setValue(100 * p_freio_t / (p_freio_t + p_freio_d))  # porcentagem da pressão referente ao freio traseiro
-    ui.label_69.setText(str(p_freio_t))
-    ui.progressBar_RearBreakPressure.setValue(p_freio_t)
-    item = QTableWidgetItem(str(current))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(3, 1, item)
-    item = QTableWidgetItem(str(pcomb))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(4, 1, item)
-    array_fuel_p = np.append(array_fuel_p, pcomb)
-    ui.progressBar_FuelPressure.setValue(pcomb)
-    ui.label_17.setText(str(pcomb))
-    ui.progressBar_OilPressure.setValue(oil_p)
-    ui.label_10.setText(str(oil_p))
-    item = QTableWidgetItem(str(oil_p))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(5, 1, item)
-    item = QTableWidgetItem(str(rpm))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(6, 1, item)
-    item = QTableWidgetItem(str(time2))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(7, 1, item)
-    ui.progressBar_TPS.setValue(tps)
-    ui.progressBar_TPS.setProperty("value", tps)
-    item = QTableWidgetItem(str(tps))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(8, 1, item)
-    dial_WheelPos.setValue(wheel_pos)
-    ui.label_19.setText(str(wheel_pos))
-    item = QTableWidgetItem(str(wheel_pos))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package2.setItem(9, 1, item)
+def update_p2(data):
+
+    elements = len(data.p2Order)
+    for key, i in zip(data.p2Order, range(0, elements)):
+        item = QTableWidgetItem(str(data.dic[key]))
+        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        ui.tableWidget_Package2.setItem(i, 1, item)
+
+
+    if ((data.dic['rearBrakeP'] + data.dic['frontBrakeP']) != 0):  # Verificação necessária para que não ocorra divisão por zero
+        ui.progressBar_FrontBreakBalance.setValue(100 * data.dic['frontBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP']))  # porcentagem da pressão referente ao freio dianteiro
+        ui.progressBar_FrontBreakBalance.setValue(100 * data.dic['rearBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP'])) # traseiro
+
+    ui.progressBar_FrontBreakPressure.setValue(data.dic['frontBrakeP'])
+    ui.label_65.setText(str(data.dic['frontBrakeP']))
+    ui.label_69.setText(str(data.dic['rearBrakeP']))
+    ui.progressBar_RearBreakPressure.setValue(data.dic['rearBrakeP'])
+
+
+    ui.progressBar_FuelPressure.setValue(data.dic['fuelP'])
+    ui.label_17.setText(str(data.dic['fuelP']))
+
+    ui.progressBar_OilPressure.setValue(data.dic['oleoP'])
+    ui.label_10.setText(str(data.dic['oleoP']))
+
+    ui.progressBar_TPS.setValue(data.dic['tps'])
+    ui.progressBar_TPS.setProperty("value", data.dic['tps'])
+
+    dial_WheelPos.setValue(data.dic['volPos'])
+    ui.label_19.setText(str(data.dic['volPos']))
 
 
   # Função que atualiza os mostradores relacionados aos dados do pacote 3
   # Pacote 3: Engine Temp, battery, fuel pump relay, fan relay, relay box temperature, break temperature rear, break temperature front, time
   # Para atualizar as células da tabela tableWidget_Package3 é necessário definir o valor da variável item como o
   # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
-def update_p3(self, temp, battery, rele_bomba, rele_vent, temp_caixaR, temp_freiot, temp_freiod, time3):
-    ui.progressBar_BatteryVoltage.setValue(int(battery))
-    ui.label_15.setText(str(battery))
+def update_p3(data):
+
+    elements = len(data.p3Order)
+    for key, i in zip(data.p3Order, range(0, elements)):
+        item = QTableWidgetItem(str(data.dic[key]))
+        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        ui.tableWidget_Package3.setItem(i, 1, item)
+
+    ui.progressBar_BatteryVoltage.setValue(int(data.dic['batVoltage']))
+    ui.label_15.setText(str(data.dic['batVoltage']))
+
   # alarme bateria: o fundo da linha da tabela referente à tensão na bateria recebe a cor vermelha
-    if (battery <= 11.5):
+    if (data.dic['batVoltage'] <= 11.5):
         item = ui.tableWidget_Package3.item(0, 0)
         item.setBackground(QtGui.QColor(255, 0, 0))
         item = ui.tableWidget_Package3.item(0, 2)
         item.setBackground(QtGui.QColor(255, 0, 0))
-        item = QTableWidgetItem(str(battery))
-        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        item = ui.tableWidget_Package3.item(0, 1)
         item.setBackground(QtGui.QColor(255, 0, 0))
-        ui.tableWidget_Package3.setItem(0, 1, item)
     else:
         item = ui.tableWidget_Package3.item(0, 0)
         item.setBackground(QtGui.QColor(255, 255, 255))
         item = ui.tableWidget_Package3.item(0, 2)
         item.setBackground(QtGui.QColor(255, 255, 255))
-        item = QTableWidgetItem(str(battery))
-        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        item = ui.tableWidget_Package3.item(0, 1)
         item.setBackground(QtGui.QColor(255, 255, 255))
-    ui.tableWidget_Package3.setItem(0, 1, item)
-    item = QTableWidgetItem(str(temp_freiod))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package3.setItem(1, 1, item)
-    item = QTableWidgetItem(str(temp_freiot))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package3.setItem(2, 1, item)
-    ui.progressBar_EngineTemperature.setValue(temp)
-    ui.label_6.setText(str(temp))
+
+
+    ui.progressBar_EngineTemperature.setValue(data.dic['ect'])
+    ui.label_6.setText(str(data.dic['ect']))
   # alarme temperatura: o fundo da linha da tabela referente à temperatura do motor recebe a cor vermelha
-    if (temp >= 95.0):
+    if (data.dic['ect'] >= 95.0):
         item = ui.tableWidget_Package3.item(3, 0)
         item.setBackground(QtGui.QColor(255, 0, 0))
         item = ui.tableWidget_Package3.item(3, 2)
         item.setBackground(QtGui.QColor(255, 0, 0))
-        item = QTableWidgetItem(str(temp))
-        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        item = ui.tableWidget_Package3.item(3, 1)
         item.setBackground(QtGui.QColor(255, 0, 0))
-        ui.tableWidget_Package3.setItem(3, 1, item)
     else:
         item = ui.tableWidget_Package3.item(3, 0)
         item.setBackground(QtGui.QColor(255, 255, 255))
         item = ui.tableWidget_Package3.item(3, 2)
         item.setBackground(QtGui.QColor(255, 255, 255))
-        item = QTableWidgetItem(str(temp))
-        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        item = ui.tableWidget_Package3.item(3, 1)
         item.setBackground(QtGui.QColor(255, 255, 255))
-        ui.tableWidget_Package3.setItem(3, 1, item)
-        item = QTableWidgetItem(str(rele_vent))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package3.setItem(4, 1, item)
-    if (int(rele_vent) == 1):
+
+
+    if (int(data.dic['releVent']) == 1):
         ui.radioButton_FanRelay.setChecked(False)
     else:
         ui.radioButton_FanRelay.setChecked(True)
-    item = QTableWidgetItem(str(rele_bomba))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package3.setItem(5, 1, item)
-    if (int(rele_bomba) == 1):
+
+    if (int(data.dic['releBomba']) == 1):
         ui.radioButton_FuelPumpRelay.setChecked(False)
     else:
         ui.radioButton_FuelPumpRelay.setChecked(True)
-    item = QTableWidgetItem(str(temp_caixaR))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package3.setItem(6, 1, item)
-    item = QTableWidgetItem(str(time3))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package3.setItem(7, 1, item)
 
   # Função que atualiza os mostradores relacionados aos dados do pacote 4
   # Pacote 4: P1, P2, P3, P4, P5, P6, P7 e P8 strain gauges, time
   # Para atualizar as células da tabela tableWidget_StrainGauge é necessário definir o valor da variável item como o
   # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
-def update_p4(p1_ext, p2_ext, p3_ext, p4_ext, p5_ext, p6_ext, p7_ext, p8_ext, time4):
+def update_p4(data):
   # extensometros
-  item = QTableWidgetItem(str(p1_ext))
+
+  elements = len(data.dic['ext'])
+  for ext, i in zip(data.dic['ext'], range(0, elements)):
+      item = QTableWidgetItem(str(ext))
+      item.setTextAlignment(QtCore.Qt.AlignCenter)
+      ui.tableWidget_Package3.setItem(i, 1, item)
+
+      item = QTableWidgetItem(str(data.dic['time4']))
   item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(0, 1, item)
-  item = QTableWidgetItem(str(p2_ext))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(1, 1, item)
-  item = QTableWidgetItem(str(p3_ext))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(2, 1, item)
-  item = QTableWidgetItem(str(p4_ext))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(3, 1, item)
-  item = QTableWidgetItem(str(p5_ext))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(4, 1, item)
-  item = QTableWidgetItem(str(p6_ext))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(5, 1, item)
-  item = QTableWidgetItem(str(p7_ext))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(6, 1, item)
-  item = QTableWidgetItem(str(p8_ext))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(7, 1, item)
-  item = QTableWidgetItem(str(time4))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_StrainGauge.setItem(8, 1, item)
+  ui.tableWidget_Package3.setItem(i+1, 1, item)
 
   # função para atualizar o arquivo setup com novos valores
 def update_setup():
