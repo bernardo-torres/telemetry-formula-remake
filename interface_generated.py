@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'interface.nova_v12.ui'
+# Form implementation generated from reading ui file 'interface.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from pyqtgraph import GraphicsLayoutWidget, PlotWidget
+
+from pyqtgraph import PlotWidget
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1350, 741)
+        MainWindow.resize(1235, 741)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
@@ -392,6 +393,9 @@ class Ui_MainWindow(object):
         self.pushButton_StopSaveFile = QtWidgets.QPushButton(self.groupBox_2)
         self.pushButton_StopSaveFile.setGeometry(QtCore.QRect(540, 60, 75, 23))
         self.pushButton_StopSaveFile.setObjectName("pushButton_StopSaveFile")
+        self.pushButtonOpenFile = QtWidgets.QPushButton(self.groupBox_2)
+        self.pushButtonOpenFile.setGeometry(QtCore.QRect(310, 30, 75, 23))
+        self.pushButtonOpenFile.setObjectName("pushButtonOpenFile")
         self.tabWidget.addTab(self.tab_4, "")
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
@@ -564,7 +568,7 @@ class Ui_MainWindow(object):
         self.groupBox_12 = QtWidgets.QGroupBox(self.tab_3)
         self.groupBox_12.setGeometry(QtCore.QRect(10, 20, 421, 331))
         self.groupBox_12.setObjectName("groupBox_12")
-        self.graphicsView_DiagramaGG = GraphicsLayoutWidget(self.groupBox_12)
+        self.graphicsView_DiagramaGG = PlotWidget(self.groupBox_12)
         self.graphicsView_DiagramaGG.setGeometry(QtCore.QRect(20, 30, 371, 271))
         self.graphicsView_DiagramaGG.setObjectName("graphicsView_DiagramaGG")
         self.groupBox_13 = QtWidgets.QGroupBox(self.tab_3)
@@ -1146,7 +1150,7 @@ class Ui_MainWindow(object):
         self.pushButton_SaveSetupValues.raise_()
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1350, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1235, 21))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -1164,7 +1168,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(3)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -1237,6 +1241,7 @@ class Ui_MainWindow(object):
         self.label_13.setText(_translate("MainWindow", "Choose File"))
         self.pushButton_SaveFile.setText(_translate("MainWindow", "Save"))
         self.pushButton_StopSaveFile.setText(_translate("MainWindow", "Stop"))
+        self.pushButtonOpenFile.setText(_translate("MainWindow", "ChooseFile"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("MainWindow", "Setup"))
         self.groupBox_5.setTitle(_translate("MainWindow", "ENGINE TEMPERATURE"))
         self.progressBar_EngineTemperature.setFormat(_translate("MainWindow", "%p"))
@@ -1377,7 +1382,7 @@ class Ui_MainWindow(object):
         item = self.tableWidget_Package1.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "VALUE"))
         item = self.tableWidget_Package1.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "UNITY"))
+        item.setText(_translate("MainWindow", "UNIT"))
         __sortingEnabled = self.tableWidget_Package1.isSortingEnabled()
         self.tableWidget_Package1.setSortingEnabled(False)
         item = self.tableWidget_Package1.item(0, 0)
@@ -1440,7 +1445,7 @@ class Ui_MainWindow(object):
         item = self.tableWidget_Package2.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "VALUE"))
         item = self.tableWidget_Package2.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "UNITY"))
+        item.setText(_translate("MainWindow", "UNIT"))
         __sortingEnabled = self.tableWidget_Package2.isSortingEnabled()
         self.tableWidget_Package2.setSortingEnabled(False)
         item = self.tableWidget_Package2.item(0, 0)
@@ -1506,7 +1511,7 @@ class Ui_MainWindow(object):
         item = self.tableWidget_Package3.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "VALUE"))
         item = self.tableWidget_Package3.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "UNITY"))
+        item.setText(_translate("MainWindow", "UNIT"))
         __sortingEnabled = self.tableWidget_Package3.isSortingEnabled()
         self.tableWidget_Package3.setSortingEnabled(False)
         item = self.tableWidget_Package3.item(0, 0)

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1350</width>
+    <width>1235</width>
     <height>741</height>
    </rect>
   </property>
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -1452,6 +1452,19 @@
         <string>Stop</string>
        </property>
       </widget>
+      <widget class="QPushButton" name="pushButtonOpenFile">
+       <property name="geometry">
+        <rect>
+         <x>310</x>
+         <y>30</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ChooseFile</string>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_2">
@@ -2010,7 +2023,7 @@
       <property name="title">
        <string>G - G DIAGRAM</string>
       </property>
-      <widget class="GraphicsLayoutWidget" name="graphicsView_DiagramaGG">
+      <widget class="PlotWidget" name="graphicsView_DiagramaGG">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -3635,7 +3648,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1350</width>
+     <width>1235</width>
      <height>21</height>
     </rect>
    </property>
@@ -3664,11 +3677,6 @@
  <customwidgets>
   <customwidget>
    <class>PlotWidget</class>
-   <extends>QGraphicsView</extends>
-   <header>pyqtgraph.h</header>
-  </customwidget>
-  <customwidget>
-   <class>GraphicsLayoutWidget</class>
    <extends>QGraphicsView</extends>
    <header>pyqtgraph.h</header>
   </customwidget>

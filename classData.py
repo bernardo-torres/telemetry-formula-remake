@@ -7,7 +7,7 @@ class Data:
     def __init__(self):
         self.wheelPosMax = 0
         self.wheelPosMin = 0
-        self.p1Size = 15
+        self.p1Size = 14
         self.p2Size = 22
         self.p3Size = 15
         self.p4Size = 30

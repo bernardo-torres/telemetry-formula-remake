@@ -19,7 +19,8 @@ from classData import Data
 from interface_generated import *
 
 # inicializações
-global save, stop, arq, arq_laptime, sec, cont, porta, x, y, s
+global save, stop, arq, arq_laptime, sec, cont, porta, x, y, s, data
+data = Data()
 save = 0  # variável que define se salva dados no txt 0= não salva, 1=salva
 stop = 1  # variável que define se o programa está pausado/parado 0= não parado, 1= parado
 arq = 0
@@ -32,7 +33,7 @@ divisor = 1
 array_lap = np.array([]).astype('int')
 aux_time = np.array([0]).astype('int')
 # Vetores para mostrar últimos dados recebidos (TEMPORARIO)
-buf = np.zeros(6)
+buf = np.array(['', '', '', '', '', ''], dtype=object)
 sec = 0
 cont = 0
 exe_time = 0
@@ -120,15 +121,15 @@ def start_program():
         # abre e configura a porta serial utilizando os valores definidos pelo usuário através da interface
         porta.baudrate = int(ui.comboBox_Baudrate.currentText())
         porta.port = str(ui.comboBox_SerialPorts.currentText())
-        porta.timeout = 1
+        porta.timeout = None
         porta.open()
         now = datetime.now()
         arquivo = "tempos_de_volta_" + str(now.hour) + "_" + str(now.minute) + ".txt"
         arq_laptime = open(arquivo, 'w')
         print("0.45")
-        data = Data()
-        program(data)
-        print("1")
+        # program()
+        program = Program()
+        print("Saiu do programa")
         # chama a função programa e passa por parãmetro o valor de stop
 # O erro de porta serial é analisado pela exceção serial.SerialException. Esse erro é tratado pausando o programa e
 # utilizando uma caixa de diálogo, a qual informa ao usuário o erro encontrado
@@ -174,29 +175,28 @@ def read_all(bufferSize, firstByteValue):
 
 # Função que executa o programa. Essa função verifica se o programa deve ser executado. Em caso afirmativo, é feita
 # a leitura da porta serial e é chamada a função que inicia o tratamento dos dados
-def program(data):
-    global stop, sec
-    try:
+class Program():
+    def __init__(self):
+        self.data = Data()
+        self.program()
+
+    def program(self):
+        global stop, sec, tim
         if (stop == 0):
             # A variável sec recebe o primeiro tempo
             # A função tempo retorna um valor o qual refere-se a quantos segundos se passaram desde um data pre-estabelecida pelo SO
             # Sendo assim, para obter o tempo de execução deve-se fazer tempofinal-tempoinicial. Isso é feito após a outra chamada da função tempo, a qual retorna o tempo final
-            print("Linha 276")
             sec = time()
-            print("Linha 278")
-
-            buffer = read_all(15, 1)
-            print(buffer)
-            test = np.zeros(15)
-            for i in range(0, len(buffer)):
-                test[i] = buffer[i]
-            print(test)
-            packIdent = buffer[0]
-
-            updateLabel(test, data)
+            self.buffer = read_all(14, 1)
+            # print(buffer)
+            self.test = np.zeros(14)
+            for i in range(0, len(self.buffer)):
+                self.test[i] = self.buffer[i]
+            self.test = self.test.astype(int)
+            print(self.test)
+            updateLabel(self.test, self.data)
             # chamada da função updateLabel para analisar os dados recebidos atualizar os mostradores da interface
-    finally:
-        QtCore.QTimer.singleShot(tim, program(data))
+            QtCore.QTimer.singleShot(tim, lambda: self.program())
 
 
 def updatePlot(data):
@@ -230,14 +230,12 @@ def vectorToString(line, delimiter):
 # Dessa forma, o vetor "leitura" contém os bytes convertidos para inteiro, porém não os valores das variáveis que trabalhamos.
 # Já o vetor "lista", possui os valores corretos para serem mostrados
 def updateLabel(buffer, data):
-    if ui.lineEdit_CalibrationConstant.text() == "":  # Caso a constante de calibração não seja definida é utilizado o valor 1
-        constante = 1
-    else:
-        constante = float(ui.lineEdit_CalibrationConstant.text())
     global aux_time, array_lap, array_oil_p, array_temp, array_battery, sec, cont, exe_time, arq, buf
 
+    print("aqui 1")
     if buffer[0] == 1:
         data.updateP1Data(buffer)
+        # print(buffer[0])
         update_p1(data)
     elif buffer[0] == 2:
         data.updateP2Data(buffer)
@@ -248,17 +246,19 @@ def updateLabel(buffer, data):
     elif buffer[0] == 4:
         data.updateP4Data(buffer)
         update_p4(data)
-
+    print("aqui 2")
     if save == 1:
         string = vectorToString(buffer, ' ')
         arq.write(string)  # escreve no arquivo txt a lista de dados recebidos
 
-    updatePlot(data)
+    # updatePlot(data)
+
     # as linhas a seguir atualizam o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
     # Caso o número de listas recebidas seja menor que 6, são mostradas apenas estas
-    buf = np.roll(buf, -1)
-    buf[5] = buffer
-    string = vectorToString(buffer, '\n')
+    string = vectorToString(buf, '\n')
+    buf = np.roll(buf, 1)
+    buf[0] = vectorToString(buffer, ' ')
+
     ui.textBrowser_Buffer.setText(string)
 
     if (stop == 0):
@@ -274,10 +274,10 @@ def updateLabel(buffer, data):
             print("qtd de execuções", cont)
 
 
-  # Função que atualiza os mostradores relacionados aos dados do pacote 1
-  # Pacote 1: X_Accelerometer, Y_Accelerometer, Z_Accelerometer, Sparcut Relay, Speed, Suspension Course, time
-  # Para atualizar as células da tabela tableWidget_Package1 é necessário definir o valor da variável item como o
-  # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
+# Função que atualiza os mostradores relacionados aos dados do pacote 1
+# Pacote 1: X_Accelerometer, Y_Accelerometer, Z_Accelerometer, Sparcut Relay, Speed, Suspension Course, time
+# Para atualizar as células da tabela tableWidget_Package1 é necessário definir o valor da variável item como o
+# desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
 def update_p1(data):
 
     elements = len(data.p1Order)
@@ -286,36 +286,25 @@ def update_p1(data):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package1.setItem(i, 1, item)
 
-    x = np.append(x,x_accel)  # concatena o valor de x_accel no vetor x e este é utilizado para plotar o diagramaGG na função update_diagramagg
-
-    y = np.append(y,y_accel)  # concatena o valor de y_accel no vetor y e este é utilizado para plotar o diagramaGG na função update_diagramagg
-
+    print(data.dic['acelX'])
     if (int(data.dic['sparkCut']) == 1):
         ui.radioButton_SparkcutRelay.setChecked(False)
     else:
         ui.radioButton_SparkcutRelay.setChecked(True)
 
-    # if (array_lap.size == 1):
-    #     ui.lineEdit_LastLap.setText(str(array_lap[array_lap.size - 1]))
-    # elif (array_lap.size > 1):
-    #     ui.lineEdit_LastLap.setText(str(array_lap[array_lap.size - 1]))
-    #     ui.lineEdit_LastLap2.setText(str(array_lap[array_lap.size - 2]))
-
-    update_diagramagg(ui.graphicsView_DiagramaGG, w1, s, x, y)  # Chamada da função update_diagramagg
+    update_diagramagg(data)  # Chamada da função update_diagramagg
 
 
-  # função que meeostra o diagrama gg
-def update_diagramagg(self, graphicsView_DiagramaGG, w1, s, x, y):
-    s = np.append(s, pg.ScatterPlotItem([y[y.size - 1]], [x[x.size - 1]], size=5,
-                                        pen=pg.mkPen(None)))
-    s[x.size - 1].setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
-    w1.addItem(s[x.size - 1])
+# função que meeostra o diagrama gg
+def update_diagramagg(data):
+    ui.graphicsView_DiagramaGG.clear()
+    ui.graphicsView_DiagramaGG.plot([data.dic['acelX']], [data.dic['acelY']], pen=None, symbol='o')
 
 
-  # Função que atualiza os mostradores relacionados aos dados do pacote 2
-  # Pacote 2: Oil pressure, fuel pressure, TPS, break pressure(rear), break pressute(front), wheel position, beacon, current, time
-  # Para atualizar as células da tabela tableWidget_Package2 é necessário definir o valor da variável item como o
-  # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
+# Função que atualiza os mostradores relacionados aos dados do pacote 2
+# Pacote 2: Oil pressure, fuel pressure, TPS, break pressure(rear), break pressute(front), wheel position, beacon, current, time
+# Para atualizar as células da tabela tableWidget_Package2 é necessário definir o valor da variável item como o
+# desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
 def update_p2(data):
 
     elements = len(data.p2Order)
@@ -323,7 +312,6 @@ def update_p2(data):
         item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package2.setItem(i, 1, item)
-
 
     if ((data.dic['rearBrakeP'] + data.dic['frontBrakeP']) != 0):  # Verificação necessária para que não ocorra divisão por zero
         ui.progressBar_FrontBreakBalance.setValue(100 * data.dic['frontBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP']))  # porcentagem da pressão referente ao freio dianteiro
@@ -334,7 +322,6 @@ def update_p2(data):
     ui.label_69.setText(str(data.dic['rearBrakeP']))
     ui.progressBar_RearBreakPressure.setValue(data.dic['rearBrakeP'])
 
-
     ui.progressBar_FuelPressure.setValue(data.dic['fuelP'])
     ui.label_17.setText(str(data.dic['fuelP']))
 
@@ -344,14 +331,14 @@ def update_p2(data):
     ui.progressBar_TPS.setValue(data.dic['tps'])
     ui.progressBar_TPS.setProperty("value", data.dic['tps'])
 
-    dial_WheelPos.setValue(data.dic['volPos'])
+    ui.dial_WheelPos.setValue(data.dic['volPos'])
     ui.label_19.setText(str(data.dic['volPos']))
 
 
-  # Função que atualiza os mostradores relacionados aos dados do pacote 3
-  # Pacote 3: Engine Temp, battery, fuel pump relay, fan relay, relay box temperature, break temperature rear, break temperature front, time
-  # Para atualizar as células da tabela tableWidget_Package3 é necessário definir o valor da variável item como o
-  # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
+# Função que atualiza os mostradores relacionados aos dados do pacote 3
+# Pacote 3: Engine Temp, battery, fuel pump relay, fan relay, relay box temperature, break temperature rear, break temperature front, time
+# Para atualizar as células da tabela tableWidget_Package3 é necessário definir o valor da variável item como o
+# desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
 def update_p3(data):
 
     elements = len(data.p3Order)
@@ -378,7 +365,6 @@ def update_p3(data):
         item.setBackground(QtGui.QColor(255, 255, 255))
         item = ui.tableWidget_Package3.item(0, 1)
         item.setBackground(QtGui.QColor(255, 255, 255))
-
 
     ui.progressBar_EngineTemperature.setValue(data.dic['ect'])
     ui.label_6.setText(str(data.dic['ect']))
@@ -426,7 +412,8 @@ def update_p4(data):
   item.setTextAlignment(QtCore.Qt.AlignCenter)
   ui.tableWidget_Package3.setItem(i+1, 1, item)
 
-  # função para atualizar o arquivo setup com novos valores
+
+# função para atualizar o arquivo setup com novos valores
 def update_setup():
     setup = open('setup.txt', 'w')
   # if((spinBox_WheelPosMax.value()!=setup.readline(0)) or (spinBox_WheelPosMin.value() != setup.readline(1)) or (spinBox_IndexEngineTemperature6.value() != setup.readline(2)) or (lineEdit_SetupDifferential.text()!=setup.readline(3))or (lineEdit_SetupCar.text()!=setup.readline(3))or (lineEdit_SetupTrack.text()!=setup.readline(3))or (lineEdit_CalibrationConstant.text()!=setup.readline(3))or (lineEdit_SetupDriver.text()!=setup.readline(3))or (lineEdit_SetupTemperature.text()!=setup.readline(3))or (lineEdit_FileName6.text()!=setup.readline(3))or (lineEdit_SetupBalanceBar.text()!=setup.readline(3))or (lineEdit_SetupTirePressureFront.text()!=setup.readline(3))or (lineEdit_SetupTirePressureRear.text()!=setup.readline(3))or (lineEdit_SetupWingAttackAngle.text()!=setup.readline(3))or (lineEdit_SetupEngineMap.text()!=setup.readline(3))or (textEdit_SetupComments.toPlainText()!=setup.readline(3))):
@@ -448,9 +435,22 @@ def update_setup():
     setup.write(str(ui.textEdit_SetupComments.toPlainText()) + "\n")  # grava comments
     setup.close()
 
-  # Funcao para atualizar campos através dos valores contidos no arquivo setup. A função lê o arquivo e define os valores dos campos relacionados aos dados do arquivo
-  # Função para definir nome do arquivo txt no qual os dados serão gravados, abrir este arquivo e gravar dados de setup e os dados recebidos através na porta serial
+
+def selectFile():
+    fileName, _ = QtWidgets.QFileDialog.getOpenFileName(MainWindow, "Escolha arquivo .txt",
+                                                        "", "All Files (*);;Text Files (*.txt)")
+
+    if len(fileName) > 5:
+        return fileName
+    else:
+        return
+
+
+# Funcao para atualizar campos através dos valores contidos no arquivo setup. A função lê o arquivo e define os valores dos campos relacionados aos dados do arquivo
+# Função para definir nome do arquivo txt no qual os dados serão gravados, abrir este arquivo e gravar dados de setup e os dados recebidos através na porta serial
 def gravacao():
+    global save
+
     arquivo = ui.lineEdit_FileName.text()  # variável arquivo recebe o nome que o usuário informa na interface do arquivo a ser criado
     now = datetime.now()
     # define o nome do arquivo concatenando o nome definido pelo usuário e hora e minuto do início da gravação
@@ -485,12 +485,14 @@ def gravacao():
 
       # Função para parar a gravação dos dados no arquivo txt
 def stop_gravacao():
+    global save
     save = 0  # atualiza o valor da variavel save, a qual é usada para verificar se está ocorrendo ou não não gravação dos dados
     ui.label_12.setText("No saving...")  # informa ao usuário a situação atual de gravação de dados
     arq.close()
     # Função para pausar o funcionamento da interface
 
 def stop_program():
+    global stop
     stop = 1  # atualiza o valor da variavel stop, a qual é usada para verificar o funcionamento da interface
     arq_laptime.close()
     if porta.isOpen():
@@ -510,6 +512,7 @@ ui = Ui_MainWindow()
 ui.setupUi(MainWindow)
 
 # ações
+ui.pushButtonOpenFile.clicked.connect(selectFile)
 ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
 ui.pushButton_PauseProgram.clicked.connect(stop_program)  # botão para pausar o programa
 ui.pushButton_StartProgram.clicked.connect(start_program)  # botão para iniciar o programa
@@ -519,15 +522,14 @@ ui.pushButton_UpdatePorts.clicked.connect(update_ports)  # botão para atualizar
 ui.pushButton_SaveSetupValues.clicked.connect(update_setup)  # botão para atualizar os dados de setup no arquivo txt
 ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interface
 ui.comboBox_SerialPorts.addItems(serial_ports())  # mostra as portas seriais disponíveis
-ui.comboBox_Baudrate.addItems(["38400", "1200", "2400", "9600", "19200", "57600", "115200"])  # mostra os baudrates disponíveis
+ui.comboBox_Baudrate.addItems(["115200", "38400", "1200", "2400", "9600", "19200", "57600" ])  # mostra os baudrates disponíveis
 #ui.comboBox_Baudrate.currentIndexChanged.connect(selection_baudrate)
 #pixmap = QPixmap("image1.png")
 #ui.label_28.setPixmap(pixmap)
 update_values()  # inicializa os valores de setup de acordo com o arquivo setup
 ui.label_12.setText("No saving...")  # informa na interface que os dados não estão sendo salvos
-w1 = ui.graphicsView_DiagramaGG.addPlot()
-w1.setRange(xRange=[-2, 2])
-w1.setRange(yRange=[-2, 2])
+ui.graphicsView_DiagramaGG.setXRange(-2, 2)
+ui.graphicsView_DiagramaGG.setYRange(-2, 2)
 
 # cores do gráfico
 #ui.checkBox_Voltage.setText(_translate("MainWindow", "Voltage"))
