@@ -1,5 +1,7 @@
 
 byte buf[14];
+byte buf2[14];
+byte buf3[14];
 int a, b, c;
 
 
@@ -32,7 +34,6 @@ void loop()
     buf[12] = buf[12] + 1;
  } 
  buf[13] = buf[13] + 1;
-
  
 Serial.write(buf, 14);
 

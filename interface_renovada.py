@@ -248,8 +248,11 @@ def updateLabel(buffer, data):
         update_p4(data)
     print("aqui 2")
     if save == 1:
-        string = vectorToString(buffer, ' ')
+
+        string = data.createPackString(1)
+        print("asjdh")
         arq.write(string)  # escreve no arquivo txt a lista de dados recebidos
+
 
     # updatePlot(data)
 
@@ -449,7 +452,7 @@ def selectFile():
 # Funcao para atualizar campos através dos valores contidos no arquivo setup. A função lê o arquivo e define os valores dos campos relacionados aos dados do arquivo
 # Função para definir nome do arquivo txt no qual os dados serão gravados, abrir este arquivo e gravar dados de setup e os dados recebidos através na porta serial
 def gravacao():
-    global save
+    global save, arq
 
     arquivo = ui.lineEdit_FileName.text()  # variável arquivo recebe o nome que o usuário informa na interface do arquivo a ser criado
     now = datetime.now()
@@ -466,14 +469,14 @@ def gravacao():
     arq.write("ANTIROLL: " +str(ui.lineEdit_SetupAntiroll.text()) + "\n")
     arq.write("PRESSÃO PNEUS DIANTEIROS: " +str(ui.lineEdit_SetupTirePressureFront.text()) + "\n")
     arq.write("PRESSÃO PNEUS TASEIROS: " +str(ui.lineEdit_SetupTirePressureRear.text()) + "\n")
-    arq.write("ÂNGULO DE ATAQUE DA ASA: " +str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")
+    arq.write("ANGULO DE ATAQUE DA ASA: " +str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")
     arq.write("MAPA MOTOR: " +str(ui.lineEdit_SetupEngineMap.text()) + "\n")
     arq.write("BALANCE BAR: " +str(ui.lineEdit_SetupBalanceBar.text()) + "\n")
     arq.write("DIFERENCIAL: " +str(ui.lineEdit_SetupDifferential.text()) + "\n")
-    arq.write("TAXA DE AQUISIÇÃO: " +str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")
-    arq.write("COMENTÁRIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
-    arq.write("POSIÇÃO MÁXIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMax.value()) + "\n")
-    arq.write("POSIÇÃO MÍNIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMin.value()) + "\n")
+    arq.write("TAXA DE AQUISICAO: " +str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")
+    arq.write("COMENTARIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
+    arq.write("POSIÇÃO MAXIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMax.value()) + "\n")
+    arq.write("POSIÇÃO MINIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMin.value()) + "\n")
     arq.write("SUSPENSÃO: " +str(ui.lineEdit_CalibrationConstant.text()) + "\n")
     arq.write("PACOTE1 40 acelY acelX acelZ velDD velT sparkCut suspPos time\n")
     arq.write("PACOTE2 20 oleoP fuelP tps rearBrakeP frontBrakeP volPos beacon correnteBat rpm time2\n")
