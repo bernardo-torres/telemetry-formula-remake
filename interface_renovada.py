@@ -19,7 +19,8 @@ from classData import Data
 from interface_generated import *
 
 # inicializações
-global save, stop, arq, arq_laptime, sec, cont, porta, x, y, s, data
+settings = QtCore.QSettings('test', 'interface_renovada')
+
 data = Data()
 save = 0  # variável que define se salva dados no txt 0= não salva, 1=salva
 stop = 1  # variável que define se o programa está pausado/parado 0= não parado, 1= parado
@@ -44,36 +45,30 @@ porta = serial.Serial()
 # A função update_values atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
 # Ela serve para que não seja necessário atualizar todos os campos sempre que for necessária o reinício da interface
 def update_values():
+    global settings
+    filename = settings.value('filename')
+    ui.lineEdit_FileName.setText(filename)
+
     try:
-        setup = open('setup.txt', 'r')
-        values = setup.readlines()
-        i = 0
-        while (i <= len(values) - 1):
-            # caso o valor da lista na posição i seja \n significa que não foi setado, anteriormente, um valor nesse campo,
-            # ou seja, ao redefinir os valores dos campos utilizando os valores salvos anteriormente, os campos devem receber ''
-            values[i] = values[i].replace('\n', '')
-            i = i + 1
-        print(values)
-        if (len(values) > 0):
-            ui.spinBox_WheelPosMax.setValue(int(values[0]))
-            ui.spinBox_WheelPosMin.setValue(int(values[1]))
-            ui.lineEdit_CalibrationConstant.setText(str(values[2]))
-            ui.lineEdit_SetupCar.setText(str(values[3]))
-            ui.lineEdit_SetupTrack.setText(str(values[4]))
-            ui.lineEdit_SetupDriver.setText(str(values[5]))
-            ui.lineEdit_SetupTemperature.setText(str(values[6]))
-            ui.lineEdit_SetupAntiroll.setText(str(values[7]))
-            ui.lineEdit_SetupTirePressureFront.setText(str(values[8]))
-            ui.lineEdit_SetupTirePressureRear.setText(str(values[9]))
-            ui.lineEdit_SetupWingAttackAngle.setText(str(values[10]))
-            ui.lineEdit_SetupEngineMap.setText(str(values[11]))
-            ui.lineEdit_SetupBalanceBar.setText(str(values[12]))
-            ui.lineEdit_SetupDifferential.setText(str(values[13]))
-            ui.lineEdit_SetupAcquisitionRate.setText(str(values[14]))
-            ui.textEdit_SetupComments.setText(str(values[15]))
-        setup.close()
+        ui.textEdit_SetupComments.setText(settings.value('setupComments'))
+        ui.spinBox_WheelPosMax.setValue(int(settings.value('wheelPosMax')))
+        ui.spinBox_WheelPosMin.setValue(int(settings.value('wheelPosMin')))
+        ui.lineEdit_CalibrationConstant.setText(settings.value('calibConstant'))
+        ui.lineEdit_SetupCar.setText(settings.value('setupCar'))
+        ui.lineEdit_SetupTrack.setText(settings.value('setupTrack'))
+        ui.lineEdit_SetupDriver.setText(settings.value('setupDriver'))
+        ui.lineEdit_SetupTemperature.setText(settings.value('setupTemp'))
+        ui.lineEdit_SetupAntiroll.setText(settings.value('setupAntiroll'))
+        ui.lineEdit_SetupTirePressureFront.setText(settings.value('tirePFront'))
+        ui.lineEdit_SetupTirePressureRear.setText(settings.value('tirePRear'))
+        ui.lineEdit_SetupWingAttackAngle.setText(settings.value('aeroAngle'))
+        ui.lineEdit_SetupEngineMap.setText(settings.value('engineMap'))
+        ui.lineEdit_SetupBalanceBar.setText(settings.value('balanceBar'))
+        ui.lineEdit_SetupDifferential.setText(settings.value('setupDrexler'))
+        ui.lineEdit_SetupAcquisitionRate.setText(settings.value('sampleRate'))
+        ui.textEdit_SetupComments.setText(settings.value('setupComments'))
     except:
-        print("ERRO")
+        print("Erro ao carregar configs")
 
 
 # As 3 funções a seguir realizam a configuração de qual porta serial será utilizada
@@ -387,7 +382,6 @@ def update_p3(data):
         item = ui.tableWidget_Package3.item(3, 1)
         item.setBackground(QtGui.QColor(255, 255, 255))
 
-
     if (int(data.dic['releVent']) == 1):
         ui.radioButton_FanRelay.setChecked(False)
     else:
@@ -418,25 +412,24 @@ def update_p4(data):
 
 # função para atualizar o arquivo setup com novos valores
 def update_setup():
-    setup = open('setup.txt', 'w')
-  # if((spinBox_WheelPosMax.value()!=setup.readline(0)) or (spinBox_WheelPosMin.value() != setup.readline(1)) or (spinBox_IndexEngineTemperature6.value() != setup.readline(2)) or (lineEdit_SetupDifferential.text()!=setup.readline(3))or (lineEdit_SetupCar.text()!=setup.readline(3))or (lineEdit_SetupTrack.text()!=setup.readline(3))or (lineEdit_CalibrationConstant.text()!=setup.readline(3))or (lineEdit_SetupDriver.text()!=setup.readline(3))or (lineEdit_SetupTemperature.text()!=setup.readline(3))or (lineEdit_FileName6.text()!=setup.readline(3))or (lineEdit_SetupBalanceBar.text()!=setup.readline(3))or (lineEdit_SetupTirePressureFront.text()!=setup.readline(3))or (lineEdit_SetupTirePressureRear.text()!=setup.readline(3))or (lineEdit_SetupWingAttackAngle.text()!=setup.readline(3))or (lineEdit_SetupEngineMap.text()!=setup.readline(3))or (textEdit_SetupComments.toPlainText()!=setup.readline(3))):
-    setup.write(str(ui.spinBox_WheelPosMax.value()) + "\n")  # grava wheel_pos max
-    setup.write(str(ui.spinBox_WheelPosMin.value()) + "\n")  # grava wheel_pos min
-    setup.write(str(ui.lineEdit_CalibrationConstant.text()) + "\n")  # grava constante de calibração
-    setup.write(str(ui.lineEdit_SetupCar.text()) + "\n")  # grava car
-    setup.write(str(ui.lineEdit_SetupTrack.text()) + "\n")  # grava track
-    setup.write(str(ui.lineEdit_SetupDriver.text()) + "\n")  # grava driver
-    setup.write(str(ui.lineEdit_SetupTemperature.text()) + "\n")  # grava temperature
-    setup.write(str(ui.lineEdit_SetupAntiroll.text()) + "\n")  # grava antiroll
-    setup.write(str(ui.lineEdit_SetupTirePressureFront.text()) + "\n")  # grava tire pressure front
-    setup.write(str(ui.lineEdit_SetupTirePressureRear.text()) + "\n")  # grava tire pressure rear
-    setup.write(str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")  # grava wing attack angle
-    setup.write(str(ui.lineEdit_SetupEngineMap.text()) + "\n")  # grava engine map
-    setup.write(str(ui.lineEdit_SetupBalanceBar.text()) + "\n")  # grava balance bar
-    setup.write(str(ui.lineEdit_SetupDifferential.text()) + "\n")  # grava differential
-    setup.write(str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")  # grava taxa de aquisição
-    setup.write(str(ui.textEdit_SetupComments.toPlainText()) + "\n")  # grava comments
-    setup.close()
+    global settings
+    settings.setValue('wheelPosMax',str(ui.spinBox_WheelPosMax.value()))
+    settings.setValue('wheelPosMin',str(ui.spinBox_WheelPosMin.value()))
+    settings.setValue('calibConstant',str(ui.lineEdit_CalibrationConstant.text()))
+    settings.setValue('setupCar',str(ui.lineEdit_SetupCar.text()))
+    settings.setValue('setupTrack' ,str(ui.lineEdit_SetupTrack.text()))
+    settings.setValue('setupDriver' ,str(ui.lineEdit_SetupDriver.text()))
+    settings.setValue('setupTemp' ,str(ui.lineEdit_SetupTemperature.text()))
+    settings.setValue('setupAntiroll' ,str(ui.lineEdit_SetupAntiroll.text()))
+    settings.setValue('tirePFront' ,str(ui.lineEdit_SetupTirePressureFront.text()))
+    settings.setValue('tirePRear' ,str(ui.lineEdit_SetupTirePressureRear.text()))
+    settings.setValue('aeroAngle' ,str(ui.lineEdit_SetupWingAttackAngle.text()))
+    settings.setValue('engineMap' ,str(ui.lineEdit_SetupEngineMap.text()))
+    settings.setValue('balanceBar' ,str(ui.lineEdit_SetupBalanceBar.text()))
+    settings.setValue('setupDrexler' ,str(ui.lineEdit_SetupDifferential.text()))
+    settings.setValue('sampleRate' ,str(ui.lineEdit_SetupAcquisitionRate.text()))
+    settings.setValue('setupComments' ,str(ui.textEdit_SetupComments.toPlainText()))
+    settings.setValue('filename', ui.lineEdit_FileName.text())
 
 
 def selectFile():
@@ -444,6 +437,7 @@ def selectFile():
                                                         "", "All Files (*);;Text Files (*.txt)")
 
     if len(fileName) > 5:
+        ui.lineEdit_FileName.setText(fileName)
         return fileName
     else:
         return
@@ -530,7 +524,7 @@ ui.comboBox_Baudrate.addItems(["115200", "38400", "1200", "2400", "9600", "19200
 #pixmap = QPixmap("image1.png")
 #ui.label_28.setPixmap(pixmap)
 update_values()  # inicializa os valores de setup de acordo com o arquivo setup
-ui.label_12.setText("No saving...")  # informa na interface que os dados não estão sendo salvos
+ui.label_12.setText("Not saving...")  # informa na interface que os dados não estão sendo salvos
 ui.graphicsView_DiagramaGG.setXRange(-2, 2)
 ui.graphicsView_DiagramaGG.setYRange(-2, 2)
 
