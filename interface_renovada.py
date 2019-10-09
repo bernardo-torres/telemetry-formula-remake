@@ -15,13 +15,13 @@ import numpy as np
 import serial
 from serial import Serial
 from serial import SerialException
-from classData import Data
+from classData import Data, File
 from interface_generated import *
 
 # inicializações
 settings = QtCore.QSettings('test', 'interface_renovada')
 
-data = Data()
+file = File()
 save = 0  # variável que define se salva dados no txt 0= não salva, 1=salva
 stop = 1  # variável que define se o programa está pausado/parado 0= não parado, 1= parado
 arq = 0
@@ -225,7 +225,7 @@ def vectorToString(line, delimiter):
 # Dessa forma, o vetor "leitura" contém os bytes convertidos para inteiro, porém não os valores das variáveis que trabalhamos.
 # Já o vetor "lista", possui os valores corretos para serem mostrados
 def updateLabel(buffer, data):
-    global aux_time, array_lap, array_oil_p, array_temp, array_battery, sec, cont, exe_time, arq, buf
+    global aux_time, sec, cont, exe_time, file, buf
 
     print("aqui 1")
     if buffer[0] == 1:
@@ -242,14 +242,14 @@ def updateLabel(buffer, data):
         data.updateP4Data(buffer)
         update_p4(data)
     print("aqui 2")
-    if save == 1:
+
+    if file.save == 1:
 
         string = data.createPackString(1)
         print("asjdh")
-        arq.write(string)  # escreve no arquivo txt a lista de dados recebidos
+        file.writeRow(string)  # escreve no arquivo txt a lista de dados recebidos
 
-
-    # updatePlot(data)
+    updatePlot(data)
 
     # as linhas a seguir atualizam o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
     # Caso o número de listas recebidas seja menor que 6, são mostradas apenas estas
@@ -444,49 +444,41 @@ def selectFile():
 
 
 # Funcao para atualizar campos através dos valores contidos no arquivo setup. A função lê o arquivo e define os valores dos campos relacionados aos dados do arquivo
-# Função para definir nome do arquivo txt no qual os dados serão gravados, abrir este arquivo e gravar dados de setup e os dados recebidos através na porta serial
-def gravacao():
-    global save, arq
-
+# Função para definir nome do arquivo txt no qual os dados serão gravados, abrir este arquivo e gravar dados de setup e os dados recebidos através na porta seria
+def beginDataSave():
+    global file
     arquivo = ui.lineEdit_FileName.text()  # variável arquivo recebe o nome que o usuário informa na interface do arquivo a ser criado
-    now = datetime.now()
-    # define o nome do arquivo concatenando o nome definido pelo usuário e hora e minuto do início da gravação
-    arquivo = arquivo + "_" + str(now.hour) + "_" + str(now.minute) + ".txt"
-    print(arquivo)
-    arq = open(arquivo, 'w')
-    # escreve os valores de setup no início do arquivo
-    arq.write("***\n")
-    arq.write("CARRO: " + str(ui.lineEdit_SetupCar.text()) + "\n")
-    arq.write("PISTA: " + str(ui.lineEdit_SetupTrack.text()) + "\n")
-    arq.write("PILOTO: " + str(ui.lineEdit_SetupDriver.text()) + "\n")
-    arq.write("TEMPERATURA AMBIENTE: " + str(ui.lineEdit_SetupTemperature.text()) + "\n")
-    arq.write("ANTIROLL: " +str(ui.lineEdit_SetupAntiroll.text()) + "\n")
-    arq.write("PRESSÃO PNEUS DIANTEIROS: " +str(ui.lineEdit_SetupTirePressureFront.text()) + "\n")
-    arq.write("PRESSÃO PNEUS TASEIROS: " +str(ui.lineEdit_SetupTirePressureRear.text()) + "\n")
-    arq.write("ANGULO DE ATAQUE DA ASA: " +str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")
-    arq.write("MAPA MOTOR: " +str(ui.lineEdit_SetupEngineMap.text()) + "\n")
-    arq.write("BALANCE BAR: " +str(ui.lineEdit_SetupBalanceBar.text()) + "\n")
-    arq.write("DIFERENCIAL: " +str(ui.lineEdit_SetupDifferential.text()) + "\n")
-    arq.write("TAXA DE AQUISICAO: " +str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")
-    arq.write("COMENTARIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
-    arq.write("POSIÇÃO MAXIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMax.value()) + "\n")
-    arq.write("POSIÇÃO MINIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMin.value()) + "\n")
-    arq.write("SUSPENSÃO: " +str(ui.lineEdit_CalibrationConstant.text()) + "\n")
-    arq.write("PACOTE1 40 acelY acelX acelZ velDD velT sparkCut suspPos time\n")
-    arq.write("PACOTE2 20 oleoP fuelP tps rearBrakeP frontBrakeP volPos beacon correnteBat rpm time2\n")
-    arq.write("PACOTE3 2 ect batVoltage releBomba releVent pduTemp tempDiscoD tempDiscoE time3\n")
-    arq.write("***\n\n")
+    file.startDataSave(arquivo)
+    file.writeRow("***\n")
+    file.writeRow("CARRO: " + str(ui.lineEdit_SetupCar.text()) + "\n")
+    file.writeRow("PISTA: " + str(ui.lineEdit_SetupTrack.text()) + "\n")
+    file.writeRow("PILOTO: " + str(ui.lineEdit_SetupDriver.text()) + "\n")
+    file.writeRow("TEMPERATURA AMBIENTE: " + str(ui.lineEdit_SetupTemperature.text()) + "\n")
+    file.writeRow("ANTIROLL: " +str(ui.lineEdit_SetupAntiroll.text()) + "\n")
+    file.writeRow("PRESSAO PNEUS DIANTEIROS: " +str(ui.lineEdit_SetupTirePressureFront.text()) + "\n")
+    file.writeRow("PRESSAO PNEUS TASEIROS: " +str(ui.lineEdit_SetupTirePressureRear.text()) + "\n")
+    file.writeRow("ANGULO DE ATAQUE DA ASA: " +str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")
+    file.writeRow("MAPA MOTOR: " +str(ui.lineEdit_SetupEngineMap.text()) + "\n")
+    file.writeRow("BALANCE BAR: " +str(ui.lineEdit_SetupBalanceBar.text()) + "\n")
+    file.writeRow("DIFERENCIAL: " +str(ui.lineEdit_SetupDifferential.text()) + "\n")
+    file.writeRow("TAXA DE AQUISICAO: " +str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")
+    file.writeRow("COMENTARIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
+    file.writeRow("POSICAO MAXIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMax.value()) + "\n")
+    file.writeRow("POSICAO MINIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMin.value()) + "\n")
+    file.writeRow("SUSPENSAO: " +str(ui.lineEdit_CalibrationConstant.text()) + "\n")
+    file.writeRow("PACOTE1 40 acelY acelX acelZ velDD velT sparkCut suspPos time\n")
+    file.writeRow("PACOTE2 20 oleoP fuelP tps rearBrakeP frontBrakeP volPos beacon correnteBat rpm time2\n")
+    file.writeRow("PACOTE3 2 ect batVoltage releBomba releVent pduTemp tempDiscoD tempDiscoE time3\n")
+    file.writeRow("***\n\n")
 
-    save = 1  # atualiza o valor da variavel save, a qual é usada para verificar se está ocorrendo ou não não gravação dos dados
     ui.label_12.setText("Saving...")  # informa ao usuário a situação atual de gravação de dados
 
-      # Função para parar a gravação dos dados no arquivo txt
-def stop_gravacao():
-    global save
-    save = 0  # atualiza o valor da variavel save, a qual é usada para verificar se está ocorrendo ou não não gravação dos dados
+
+def stopDataSave():
+    global file
+    file.stopDataSave()
     ui.label_12.setText("No saving...")  # informa ao usuário a situação atual de gravação de dados
-    arq.close()
-    # Função para pausar o funcionamento da interface
+
 
 def stop_program():
     global stop
@@ -513,8 +505,8 @@ ui.pushButtonOpenFile.clicked.connect(selectFile)
 ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
 ui.pushButton_PauseProgram.clicked.connect(stop_program)  # botão para pausar o programa
 ui.pushButton_StartProgram.clicked.connect(start_program)  # botão para iniciar o programa
-ui.pushButton_SaveFile.clicked.connect(gravacao)  # botão para iniciar gravação de dados no txt
-ui.pushButton_StopSaveFile.clicked.connect(stop_gravacao)  # botão para parar a gravação de dados txt
+ui.pushButton_SaveFile.clicked.connect(beginDataSave)  # botão para iniciar gravação de dados no txt
+ui.pushButton_StopSaveFile.clicked.connect(stopDataSave)  # botão para parar a gravação de dados txt
 ui.pushButton_UpdatePorts.clicked.connect(update_ports)  # botão para atualizar as portas seriis disponíveis
 ui.pushButton_SaveSetupValues.clicked.connect(update_setup)  # botão para atualizar os dados de setup no arquivo txt
 ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interface

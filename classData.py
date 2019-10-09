@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+from datetime import datetime
 
 
 class Data:
@@ -48,12 +49,12 @@ class Data:
         }
 
         self.dicRaw = copy.deepcopy(self.dic)
-        self.array_temp = np.zeros(50)
-        self.array_fuel_p = np.zeros(50)
-        self.array_oil_p = np.zeros(50)
-        self.array_battery = np.zeros(50)
-        self.array_time2 = np.zeros(50)
-        self.array_time2 = np.zeros(50)
+        self.arrayTemp = np.zeros(50)
+        self.arrayFuelP = np.zeros(50)
+        self.arrayOilP = np.zeros(50)
+        self.arrayBattery = np.zeros(50)
+        self.arrayTime2 = np.zeros(50)
+        self.arrayTime3 = np.zeros(50)
 
     def updateP1Data(self, buffer):
         if ((int(buffer[0]) == 1) and (len(buffer) == self.p1Size)):  # testa se é o pacote 1 e está completo
@@ -148,3 +149,26 @@ class Data:
         string = delimiter.join(str(x) for x in vec)
         string = string + '\n'
         return string
+
+
+class File:
+    def __init__(self):
+        self.save = 0
+
+    def startDataSave(self, arquivo):
+        now = datetime.now()
+        # define o nome do arquivo concatenando o nome definido pelo usuário e hora e minuto do início da gravação
+        arquivo = arquivo + "_" + str(now.hour) + "_" + str(now.minute) + ".txt"
+        print(arquivo)
+        self.arq = open(arquivo, 'w')
+        self.save = 1
+        # escreve os valores de setup no início do arquivo
+
+    def writeRow(self, string):
+        self.arq.write(string)
+
+    # Função para parar a gravação dos dados no arquivo txt
+    def stopDataSave(self):
+        self.save = 0  # atualiza o valor da variavel save, a qual é usada para verificar se está ocorrendo ou não não gravação dos dados
+        self.arq.close()
+        # Função para pausar o funcionamento da interface
