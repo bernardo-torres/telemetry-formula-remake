@@ -42,9 +42,9 @@ exe_time = 0
 porta = serial.Serial()
 
 
-# A função update_values atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
+# A função updateInitValues atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
 # Ela serve para que não seja necessário atualizar todos os campos sempre que for necessária o reinício da interface
-def update_values():
+def updateInitValues():
     global settings
     filename = settings.value('filename')
     ui.lineEdit_FileName.setText(filename)
@@ -74,13 +74,13 @@ def update_values():
 # As 3 funções a seguir realizam a configuração de qual porta serial será utilizada
 # função que atualiza as portas seriais disponíveis
 # Atualiza portas seriais disponiveis
-def update_ports():
+def updatePorts():
     ui.comboBox_SerialPorts.clear()
-    ui.comboBox_SerialPorts.addItems(serial_ports())
+    ui.comboBox_SerialPorts.addItems(serialPorts())
 
 
 # Lista as portas seriais disponiveis. Retorna uma lista com os nomes das portas
-def serial_ports():
+def serialPorts():
     """ Lists serial port names
         :raises EnvironmentError:
             On unsupported or unknown platforms
@@ -108,7 +108,7 @@ def serial_ports():
 
 
 # Função que inicia a execução da interface
-def start_program():
+def startProgram():
     try:
         global stop, tim, arq_laptime
         stop = 0
@@ -129,7 +129,7 @@ def start_program():
 # O erro de porta serial é analisado pela exceção serial.SerialException. Esse erro é tratado pausando o programa e
 # utilizando uma caixa de diálogo, a qual informa ao usuário o erro encontrado
     except serial.serialutil.SerialException:
-        stop_program()
+        stopProgram()
         dlg = QMessageBox(None)
         dlg.setWindowTitle("Error!")
         dlg.setIcon(QMessageBox.Warning)
@@ -139,7 +139,7 @@ def start_program():
 
 
 # Le buffer da porta serial
-def read_all(bufferSize, firstByteValue):
+def readAll(bufferSize, firstByteValue):
     while True:
         while (porta.inWaiting() == 0):
             pass
@@ -182,7 +182,7 @@ class Program():
             # A função tempo retorna um valor o qual refere-se a quantos segundos se passaram desde um data pre-estabelecida pelo SO
             # Sendo assim, para obter o tempo de execução deve-se fazer tempofinal-tempoinicial. Isso é feito após a outra chamada da função tempo, a qual retorna o tempo final
             sec = time()
-            self.buffer = read_all(14, 1)
+            self.buffer = readAll(14, 1)
             # print(buffer)
             self.test = np.zeros(14)
             for i in range(0, len(self.buffer)):
@@ -231,16 +231,16 @@ def updateLabel(buffer, data):
     if buffer[0] == 1:
         data.updateP1Data(buffer)
         # print(buffer[0])
-        update_p1(data)
+        updateP1Interface(data)
     elif buffer[0] == 2:
         data.updateP2Data(buffer)
-        update_p2(data)
+        updateP2Interface(data)
     elif buffer[0] == 3:
         data.updateP3Data(buffer)
-        update_p3(data)
+        updateP3Interface(data)
     elif buffer[0] == 4:
         data.updateP4Data(buffer)
-        update_p4(data)
+        updateP4Interface(data)
     print("aqui 2")
 
     if file.save == 1:
@@ -276,7 +276,7 @@ def updateLabel(buffer, data):
 # Pacote 1: X_Accelerometer, Y_Accelerometer, Z_Accelerometer, Sparcut Relay, Speed, Suspension Course, time
 # Para atualizar as células da tabela tableWidget_Package1 é necessário definir o valor da variável item como o
 # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
-def update_p1(data):
+def updateP1Interface(data):
 
     elements = len(data.p1Order)
     for key, i in zip(data.p1Order, range(0, elements)):
@@ -303,7 +303,7 @@ def update_diagramagg(data):
 # Pacote 2: Oil pressure, fuel pressure, TPS, break pressure(rear), break pressute(front), wheel position, beacon, current, time
 # Para atualizar as células da tabela tableWidget_Package2 é necessário definir o valor da variável item como o
 # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
-def update_p2(data):
+def updateP2Interface(data):
 
     elements = len(data.p2Order)
     for key, i in zip(data.p2Order, range(0, elements)):
@@ -337,7 +337,7 @@ def update_p2(data):
 # Pacote 3: Engine Temp, battery, fuel pump relay, fan relay, relay box temperature, break temperature rear, break temperature front, time
 # Para atualizar as células da tabela tableWidget_Package3 é necessário definir o valor da variável item como o
 # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
-def update_p3(data):
+def updateP3Interface(data):
 
     elements = len(data.p3Order)
     for key, i in zip(data.p3Order, range(0, elements)):
@@ -392,11 +392,12 @@ def update_p3(data):
     else:
         ui.radioButton_FuelPumpRelay.setChecked(True)
 
-  # Função que atualiza os mostradores relacionados aos dados do pacote 4
-  # Pacote 4: P1, P2, P3, P4, P5, P6, P7 e P8 strain gauges, time
-  # Para atualizar as células da tabela tableWidget_StrainGauge é necessário definir o valor da variável item como o
-  # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
-def update_p4(data):
+
+# Função que atualiza os mostradores relacionados aos dados do pacote 4
+# Pacote 4: P1, P2, P3, P4, P5, P6, P7 e P8 strain gauges, time
+# Para atualizar as células da tabela tableWidget_StrainGauge é necessário definir o valor da variável item como o
+# desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
+def updateP4Interface(data):
   # extensometros
 
   elements = len(data.dic['ext'])
@@ -411,7 +412,7 @@ def update_p4(data):
 
 
 # função para atualizar o arquivo setup com novos valores
-def update_setup():
+def updateSetup():
     global settings
     settings.setValue('wheelPosMax',str(ui.spinBox_WheelPosMax.value()))
     settings.setValue('wheelPosMin',str(ui.spinBox_WheelPosMin.value()))
@@ -480,7 +481,7 @@ def stopDataSave():
     ui.label_12.setText("No saving...")  # informa ao usuário a situação atual de gravação de dados
 
 
-def stop_program():
+def stopProgram():
     global stop
     stop = 1  # atualiza o valor da variavel stop, a qual é usada para verificar o funcionamento da interface
     arq_laptime.close()
@@ -490,8 +491,10 @@ def stop_program():
     else:
         pass
 
+
 def exit():
     sys.exit(app.exec_())
+
 
 # Roda janela
 app = QtWidgets.QApplication(sys.argv)
@@ -503,19 +506,19 @@ ui.setupUi(MainWindow)
 # ações
 ui.pushButtonOpenFile.clicked.connect(selectFile)
 ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
-ui.pushButton_PauseProgram.clicked.connect(stop_program)  # botão para pausar o programa
-ui.pushButton_StartProgram.clicked.connect(start_program)  # botão para iniciar o programa
+ui.pushButton_PauseProgram.clicked.connect(stopProgram)  # botão para pausar o programa
+ui.pushButton_StartProgram.clicked.connect(startProgram)  # botão para iniciar o programa
 ui.pushButton_SaveFile.clicked.connect(beginDataSave)  # botão para iniciar gravação de dados no txt
 ui.pushButton_StopSaveFile.clicked.connect(stopDataSave)  # botão para parar a gravação de dados txt
-ui.pushButton_UpdatePorts.clicked.connect(update_ports)  # botão para atualizar as portas seriis disponíveis
-ui.pushButton_SaveSetupValues.clicked.connect(update_setup)  # botão para atualizar os dados de setup no arquivo txt
+ui.pushButton_UpdatePorts.clicked.connect(updatePorts)  # botão para atualizar as portas seriis disponíveis
+ui.pushButton_SaveSetupValues.clicked.connect(updateSetup)  # botão para atualizar os dados de setup no arquivo txt
 ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interface
-ui.comboBox_SerialPorts.addItems(serial_ports())  # mostra as portas seriais disponíveis
+ui.comboBox_SerialPorts.addItems(serialPorts())  # mostra as portas seriais disponíveis
 ui.comboBox_Baudrate.addItems(["115200", "38400", "1200", "2400", "9600", "19200", "57600" ])  # mostra os baudrates disponíveis
 #ui.comboBox_Baudrate.currentIndexChanged.connect(selection_baudrate)
 #pixmap = QPixmap("image1.png")
 #ui.label_28.setPixmap(pixmap)
-update_values()  # inicializa os valores de setup de acordo com o arquivo setup
+updateInitValues()  # inicializa os valores de setup de acordo com o arquivo setup
 ui.label_12.setText("Not saving...")  # informa na interface que os dados não estão sendo salvos
 ui.graphicsView_DiagramaGG.setXRange(-2, 2)
 ui.graphicsView_DiagramaGG.setYRange(-2, 2)
