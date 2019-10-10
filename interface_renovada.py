@@ -162,7 +162,13 @@ def readAll(bufferSize, firstByteValue):
         read_buffer += byte
 
         if(len(read_buffer) == bufferSize):
-            break
+            if int(read_buffer[bufferSize-2]) == 9:
+                if int(read_buffer[bufferSize-1]) == 10:
+                    break
+                else:
+                    print("Nao achou o 10")
+            else:
+                print("Nao achou o 9")
         else:
             print('AQQQQ')
     return read_buffer
@@ -182,9 +188,9 @@ class Program():
             # A função tempo retorna um valor o qual refere-se a quantos segundos se passaram desde um data pre-estabelecida pelo SO
             # Sendo assim, para obter o tempo de execução deve-se fazer tempofinal-tempoinicial. Isso é feito após a outra chamada da função tempo, a qual retorna o tempo final
             sec = time()
-            self.buffer = readAll(14, 1)
+            self.buffer = readAll(16, 1)
             # print(buffer)
-            self.test = np.zeros(14)
+            self.test = np.zeros(16)
             for i in range(0, len(self.buffer)):
                 self.test[i] = self.buffer[i]
             self.test = self.test.astype(int)
