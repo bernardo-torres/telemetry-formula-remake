@@ -3,27 +3,25 @@ from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
 # pacotes necessários
 import sys
-import pyqtgraph as pg
 from time import time
 import glob
-from PyQt5.QtGui import QPixmap
 import PyQt5.sip
 from datetime import datetime
-import struct
 import numpy as np
 # Se for instalar um pacote, NÃO instalar o serial, apenas o pyserial
 import serial
 from serial import Serial
 from serial import SerialException
-from classData import Data, File
+from classData import Data, File, ErrorLog
 from interface_generated import *
 
-# inicializações
+# settins armazena os campos de configuracao na interface
 settings = QtCore.QSettings('test', 'interface_renovada')
 
+# Classes globais (file e errorLog)
 file = File()
-save = 0  # variável que define se salva dados no txt 0= não salva, 1=salva
-stop = 1  # variável que define se o programa está pausado/parado 0= não parado, 1= parado
+
+stop = 1
 arq = 0
 arq_laptime = 0
 array_leitura = np.array([]).astype('int')
@@ -45,10 +43,12 @@ porta = serial.Serial()
 # A função updateInitValues atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
 # Ela serve para que não seja necessário atualizar todos os campos sempre que for necessária o reinício da interface
 def updateInitValues():
-    global settings
-    filename = settings.value('filename')
-    ui.lineEdit_FileName.setText(filename)
-
+    global settings, errorLog
+    try:
+        filename = settings.value('filename')
+        ui.lineEdit_FileName.setText(filename)
+    except:
+        errorLog.writeErrorLog("Erro ao carregar config do arquivo")
     try:
         ui.textEdit_SetupComments.setText(settings.value('setupComments'))
         ui.spinBox_WheelPosMax.setValue(int(settings.value('wheelPosMax')))
@@ -68,7 +68,7 @@ def updateInitValues():
         ui.lineEdit_SetupAcquisitionRate.setText(settings.value('sampleRate'))
         ui.textEdit_SetupComments.setText(settings.value('setupComments'))
     except:
-        print("Erro ao carregar configs")
+        errorLog.writeErrorLog("Erro ao carregar configs")
 
 
 # As 3 funções a seguir realizam a configuração de qual porta serial será utilizada
@@ -153,10 +153,10 @@ def readAll(bufferSize, firstByteValue):
                 read_buffer += a
                 break
             else:
-                print('Erro na leitura2')
+                errorLog.writeErrorLog("Leitura: segundo byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se 5")
         # Se o byte lido nao for 1, quer dizer que perdeu algum dado.
         else:
-            print('Erro na leitura1')
+            errorLog.writeErrorLog("Leitura: primeiro byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se de 1 a 4")
     while True:
         byte = porta.read(size=bufferSize - 2)  # dado com formato de byte
         read_buffer += byte
@@ -166,9 +166,9 @@ def readAll(bufferSize, firstByteValue):
                 if int(read_buffer[bufferSize-1]) == 10:
                     break
                 else:
-                    print("Nao achou o 10")
+                    errorLog.writeErrorLog("Leitura: ultimo dado diferente de byte 10")
             else:
-                print("Nao achou o 9")
+                errorLog.writeErrorLog("Leitura: penultimo dado diferente de byte 9")
         else:
             print('AQQQQ')
     return read_buffer
@@ -233,7 +233,6 @@ def vectorToString(line, delimiter):
 def updateLabel(buffer, data):
     global aux_time, sec, cont, exe_time, file, buf
 
-    print("aqui 1")
     if buffer[0] == 1:
         data.updateP1Data(buffer)
         # print(buffer[0])
@@ -247,12 +246,10 @@ def updateLabel(buffer, data):
     elif buffer[0] == 4:
         data.updateP4Data(buffer)
         updateP4Interface(data)
-    print("aqui 2")
 
     if file.save == 1:
 
         string = data.createPackString(1)
-        print("asjdh")
         file.writeRow(string)  # escreve no arquivo txt a lista de dados recebidos
 
     updatePlot(data)
@@ -419,7 +416,8 @@ def updateP4Interface(data):
 
 # função para atualizar o arquivo setup com novos valores
 def updateSetup():
-    global settings
+    
+    global settings, errorLog
     settings.setValue('wheelPosMax',str(ui.spinBox_WheelPosMax.value()))
     settings.setValue('wheelPosMin',str(ui.spinBox_WheelPosMin.value()))
     settings.setValue('calibConstant',str(ui.lineEdit_CalibrationConstant.text()))
@@ -437,7 +435,6 @@ def updateSetup():
     settings.setValue('sampleRate' ,str(ui.lineEdit_SetupAcquisitionRate.text()))
     settings.setValue('setupComments' ,str(ui.textEdit_SetupComments.toPlainText()))
     settings.setValue('filename', ui.lineEdit_FileName.text())
-
 
 def selectFile():
     fileName, _ = QtWidgets.QFileDialog.getOpenFileName(MainWindow, "Escolha arquivo .txt",
@@ -508,6 +505,8 @@ app.setStyle("fusion")
 MainWindow = QtWidgets.QMainWindow()
 ui = Ui_MainWindow()
 ui.setupUi(MainWindow)
+
+errorLog = ErrorLog(ui.errorLog)
 
 # ações
 ui.pushButtonOpenFile.clicked.connect(selectFile)

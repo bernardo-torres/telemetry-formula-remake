@@ -172,3 +172,19 @@ class File:
         self.save = 0  # atualiza o valor da variavel save, a qual é usada para verificar se está ocorrendo ou não não gravação dos dados
         self.arq.close()
         # Função para pausar o funcionamento da interface
+
+
+class ErrorLog():
+    def __init__(self, logInstance):
+        self.errorLog = []
+        self.logInstance = logInstance
+
+    # Insere novo texto de erro na primeira posicao do vetor
+    def writeErrorLog(self, text):
+        self.errorLog.append(" ")
+        self.errorLog = self.errorLog[-1:] + self.errorLog[:-1]
+        self.errorLog[0] = text
+        string = '\n'.join(str(x) for x in self.errorLog)
+        string = string + '\n'
+        self.logInstance.setText(string)
+        print(text)

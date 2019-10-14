@@ -572,6 +572,12 @@ class Ui_MainWindow(object):
         self.label_129.setGeometry(QtCore.QRect(460, 40, 121, 16))
         self.label_129.setObjectName("label_129")
         self.tabWidget.addTab(self.tab_5, "")
+        self.tab_4 = QtWidgets.QWidget()
+        self.tab_4.setObjectName("tab_4")
+        self.errorLog = QtWidgets.QTextBrowser(self.tab_4)
+        self.errorLog.setGeometry(QtCore.QRect(30, 20, 671, 581))
+        self.errorLog.setObjectName("errorLog")
+        self.tabWidget.addTab(self.tab_4, "")
         self.pushButton_Exit = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_Exit.setGeometry(QtCore.QRect(1200, 560, 91, 31))
         font = QtGui.QFont()
@@ -981,7 +987,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -1137,6 +1143,7 @@ class Ui_MainWindow(object):
         self.progressBar_WeightDistribuition1.setFormat(_translate("MainWindow", "%p"))
         self.label_129.setText(_translate("MainWindow", "Weight Distribuition (Kg)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("MainWindow", "Strain Gauge"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("MainWindow", "Error Log"))
         self.pushButton_Exit.setText(_translate("MainWindow", "EXIT"))
         self.pushButton_PauseProgram.setText(_translate("MainWindow", "PAUSE PROGRAM"))
         self.pushButton_StartProgram.setText(_translate("MainWindow", "START PROGRAM"))
