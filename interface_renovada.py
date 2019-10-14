@@ -15,10 +15,10 @@ from serial import SerialException
 from classData import Data, File, ErrorLog
 from interface_generated import *
 
-# settins armazena os campos de configuracao na interface
+# settings armazena os campos de configuracao na interface
 settings = QtCore.QSettings('test', 'interface_renovada')
 
-# Classes globais (file e errorLog)
+# Classes globais
 file = File()
 
 stop = 1
@@ -71,8 +71,6 @@ def updateInitValues():
         errorLog.writeErrorLog("Erro ao carregar configs")
 
 
-# As 3 funções a seguir realizam a configuração de qual porta serial será utilizada
-# função que atualiza as portas seriais disponíveis
 # Atualiza portas seriais disponiveis
 def updatePorts():
     ui.comboBox_SerialPorts.clear()
@@ -107,12 +105,12 @@ def serialPorts():
     return result
 
 
-# Função que inicia a execução da interface
+# Função que inicia a execução do programa
 def startProgram():
     try:
-        global stop, tim, arq_laptime
+        global stop, updateTime, arq_laptime, errorLog
         stop = 0
-        tim = ui.doubleSpinBox_UpdateTime.value() * 1000
+        updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
         # abre e configura a porta serial utilizando os valores definidos pelo usuário através da interface
         porta.baudrate = int(ui.comboBox_Baudrate.currentText())
         porta.port = str(ui.comboBox_SerialPorts.currentText())
@@ -121,14 +119,14 @@ def startProgram():
         now = datetime.now()
         arquivo = "tempos_de_volta_" + str(now.hour) + "_" + str(now.minute) + ".txt"
         arq_laptime = open(arquivo, 'w')
-        print("0.45")
-        # program()
+        # Inicializa programa
         program = Program()
         print("Saiu do programa")
-        # chama a função programa e passa por parãmetro o valor de stop
+
 # O erro de porta serial é analisado pela exceção serial.SerialException. Esse erro é tratado pausando o programa e
 # utilizando uma caixa de diálogo, a qual informa ao usuário o erro encontrado
     except serial.serialutil.SerialException:
+        errorLog.writeErrorLog("startProgram: SerialException")
         stopProgram()
         dlg = QMessageBox(None)
         dlg.setWindowTitle("Error!")
@@ -141,9 +139,11 @@ def startProgram():
 # Le buffer da porta serial
 def readAll(bufferSize, firstByteValue):
     while True:
+        # Espera receber algo na porta serial
         while (porta.inWaiting() == 0):
             pass
         read_buffer = b''
+        # Le primeiro e segundo bytes
         firstByte = porta.read()
         if int.from_bytes(firstByte, byteorder='big') == firstByteValue:
             read_buffer += firstByte
@@ -154,58 +154,60 @@ def readAll(bufferSize, firstByteValue):
                 break
             else:
                 errorLog.writeErrorLog("Leitura: segundo byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se 5")
-        # Se o byte lido nao for 1, quer dizer que perdeu algum dado.
+        # Se o byte lido nao for 1, 2 3 ou 4,, quer dizer que perdeu algum dado.
         else:
             errorLog.writeErrorLog("Leitura: primeiro byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se de 1 a 4")
     while True:
-        byte = porta.read(size=bufferSize - 2)  # dado com formato de byte
+        # Le resto do buffer
+        byte = porta.read(size=bufferSize - 2)
         read_buffer += byte
 
         if(len(read_buffer) == bufferSize):
             if int(read_buffer[bufferSize-2]) == 9:
+                # Chegou no fim do pacote
                 if int(read_buffer[bufferSize-1]) == 10:
                     break
                 else:
                     errorLog.writeErrorLog("Leitura: ultimo dado diferente de byte 10")
             else:
                 errorLog.writeErrorLog("Leitura: penultimo dado diferente de byte 9")
-        else:
-            print('AQQQQ')
     return read_buffer
 
 
-# Função que executa o programa. Essa função verifica se o programa deve ser executado. Em caso afirmativo, é feita
-# a leitura da porta serial e é chamada a função que inicia o tratamento dos dados
+# Função que executa o programa
 class Program():
     def __init__(self):
+        # Data armazena os dados lidos
         self.data = Data()
         self.program()
 
     def program(self):
-        global stop, sec, tim
+        global stop, sec, updateTime
         if (stop == 0):
-            # A variável sec recebe o primeiro tempo
-            # A função tempo retorna um valor o qual refere-se a quantos segundos se passaram desde um data pre-estabelecida pelo SO
-            # Sendo assim, para obter o tempo de execução deve-se fazer tempofinal-tempoinicial. Isso é feito após a outra chamada da função tempo, a qual retorna o tempo final
             sec = time()
+            # Le dados da porta serial
             self.buffer = readAll(16, 1)
-            # print(buffer)
             self.test = np.zeros(16)
             for i in range(0, len(self.buffer)):
                 self.test[i] = self.buffer[i]
             self.test = self.test.astype(int)
             print(self.test)
-            updateLabel(self.test, self.data)
+
             # chamada da função updateLabel para analisar os dados recebidos atualizar os mostradores da interface
-            QtCore.QTimer.singleShot(tim, lambda: self.program())
+            updateLabel(self.test, self.data)
+
+            # Apos updateTime segundos, chama funcao program() novamente
+            QtCore.QTimer.singleShot(updateTime, lambda: self.program())
 
 
 def updatePlot(data):
     # as linhas a seguir plotam os gráficos selecionados atráves dos checkBox e define as cores de cada gráfico.
-    # Os gráficos são compostos pelos últimos 50 pontos do dado contidos nos arrays de cada dado.
+    # Os gráficos são compostos pelos últimos 50 pontos do dado
 
+    # Arrasta vetor pto lado para que novo valor possa ser inserido
     data.rollArrays()
 
+    # Atualiza graficos
     ui.graphicsView_EngineData.clear()
     if ui.checkBox_EngineTemperature.isChecked() == 1:
         ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayTemp, pen='r')
@@ -217,22 +219,17 @@ def updatePlot(data):
         ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayOilP, pen='y')
 
 
+# Concatena vetor em uma string separada por delimiter
 def vectorToString(line, delimiter):
-
     string = delimiter.join(str(x) for x in line)
     string = string + '\n'
     return string
 
 
-# Função que recebe novos dados, analisa sua consistência, verifica qual pacote foi recebido, realiza operações
-# necessárias com os dados e chama as funções de atualização de pacotes. Além disso, a função realiza a escrita
-# dos dados no arquivo txt. Isso é feito dentro de cada if para que só sejam gravados dados que foram recebidos corretamente.
-# A função recebe o vetor "leitura", realiza as operações binárias, deslocamento e soma, e cria o vetor "lista".
-# Dessa forma, o vetor "leitura" contém os bytes convertidos para inteiro, porém não os valores das variáveis que trabalhamos.
-# Já o vetor "lista", possui os valores corretos para serem mostrados
 def updateLabel(buffer, data):
     global aux_time, sec, cont, exe_time, file, buf
 
+    # Atualiza dados em Data e atualiza campos respectivos na interface
     if buffer[0] == 1:
         data.updateP1Data(buffer)
         # print(buffer[0])
@@ -247,19 +244,18 @@ def updateLabel(buffer, data):
         data.updateP4Data(buffer)
         updateP4Interface(data)
 
+    # Grava linha buffer no arquivo
     if file.save == 1:
-
         string = data.createPackString(1)
-        file.writeRow(string)  # escreve no arquivo txt a lista de dados recebidos
+        file.writeRow(string)
 
+    # Atualiza graficos
     updatePlot(data)
 
-    # as linhas a seguir atualizam o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
-    # Caso o número de listas recebidas seja menor que 6, são mostradas apenas estas
+    # Atualiza o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
     string = vectorToString(buf, '\n')
     buf = np.roll(buf, 1)
     buf[0] = vectorToString(buffer, ' ')
-
     ui.textBrowser_Buffer.setText(string)
 
     if (stop == 0):
@@ -282,12 +278,15 @@ def updateLabel(buffer, data):
 def updateP1Interface(data):
 
     elements = len(data.p1Order)
+
+    # Itera na variavel que contem a ordem dos pacotes para pegar as respectivas chaves do dicionario
     for key, i in zip(data.p1Order, range(0, elements)):
+        # Cria elemento da tabela, faz o alinhamento e coloca valor
         item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package1.setItem(i, 1, item)
 
-    print(data.dic['acelX'])
+    # print(data.dic['acelX'])
     if (int(data.dic['sparkCut']) == 1):
         ui.radioButton_SparkcutRelay.setChecked(False)
     else:
@@ -296,16 +295,14 @@ def updateP1Interface(data):
     update_diagramagg(data)  # Chamada da função update_diagramagg
 
 
-# função que meeostra o diagrama gg
+# função que atualiza o diagrama gg
 def update_diagramagg(data):
     ui.graphicsView_DiagramaGG.clear()
     ui.graphicsView_DiagramaGG.plot([data.dic['acelX']], [data.dic['acelY']], pen=None, symbol='o')
 
 
 # Função que atualiza os mostradores relacionados aos dados do pacote 2
-# Pacote 2: Oil pressure, fuel pressure, TPS, break pressure(rear), break pressute(front), wheel position, beacon, current, time
-# Para atualizar as células da tabela tableWidget_Package2 é necessário definir o valor da variável item como o
-# desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
+# Funcionaento semelhante ao do pacote 1
 def updateP2Interface(data):
 
     elements = len(data.p2Order)
@@ -318,6 +315,7 @@ def updateP2Interface(data):
         ui.progressBar_FrontBreakBalance.setValue(100 * data.dic['frontBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP']))  # porcentagem da pressão referente ao freio dianteiro
         ui.progressBar_FrontBreakBalance.setValue(100 * data.dic['rearBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP'])) # traseiro
 
+    # atualiza gauges
     ui.progressBar_FrontBreakPressure.setValue(data.dic['frontBrakeP'])
     ui.label_65.setText(str(data.dic['frontBrakeP']))
     ui.label_69.setText(str(data.dic['rearBrakeP']))
@@ -337,9 +335,7 @@ def updateP2Interface(data):
 
 
 # Função que atualiza os mostradores relacionados aos dados do pacote 3
-# Pacote 3: Engine Temp, battery, fuel pump relay, fan relay, relay box temperature, break temperature rear, break temperature front, time
-# Para atualizar as células da tabela tableWidget_Package3 é necessário definir o valor da variável item como o
-# desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
+# Funcionaento semelhante ao do pacote 1
 def updateP3Interface(data):
 
     elements = len(data.p3Order)
@@ -348,6 +344,7 @@ def updateP3Interface(data):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package3.setItem(i, 1, item)
 
+    # Gauge da bateria
     ui.progressBar_BatteryVoltage.setValue(int(data.dic['batVoltage']))
     ui.label_15.setText(str(data.dic['batVoltage']))
 
@@ -369,7 +366,8 @@ def updateP3Interface(data):
 
     ui.progressBar_EngineTemperature.setValue(data.dic['ect'])
     ui.label_6.setText(str(data.dic['ect']))
-  # alarme temperatura: o fundo da linha da tabela referente à temperatura do motor recebe a cor vermelha
+
+    # alarme temperatura: o fundo da linha da tabela referente à temperatura do motor recebe a cor vermelha
     if (data.dic['ect'] >= 95.0):
         item = ui.tableWidget_Package3.item(3, 0)
         item.setBackground(QtGui.QColor(255, 0, 0))
@@ -397,26 +395,23 @@ def updateP3Interface(data):
 
 
 # Função que atualiza os mostradores relacionados aos dados do pacote 4
-# Pacote 4: P1, P2, P3, P4, P5, P6, P7 e P8 strain gauges, time
-# Para atualizar as células da tabela tableWidget_StrainGauge é necessário definir o valor da variável item como o
-# desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
+# Funcionaento semelhante ao do pacote 1
 def updateP4Interface(data):
-  # extensometros
 
-  elements = len(data.dic['ext'])
-  for ext, i in zip(data.dic['ext'], range(0, elements)):
-      item = QTableWidgetItem(str(ext))
-      item.setTextAlignment(QtCore.Qt.AlignCenter)
-      ui.tableWidget_Package3.setItem(i, 1, item)
+    elements = len(data.dic['ext'])
+    for ext, i in zip(data.dic['ext'], range(0, elements)):
+        item = QTableWidgetItem(str(ext))
+        item.setTextAlignment(QtCore.Qt.AlignCenter)
+        ui.tableWidget_Package3.setItem(i, 1, item)
 
       item = QTableWidgetItem(str(data.dic['time4']))
-  item.setTextAlignment(QtCore.Qt.AlignCenter)
-  ui.tableWidget_Package3.setItem(i+1, 1, item)
+    item.setTextAlignment(QtCore.Qt.AlignCenter)
+    ui.tableWidget_Package3.setItem(i+1, 1, item)
 
 
 # função para atualizar o arquivo setup com novos valores
 def updateSetup():
-    
+
     global settings, errorLog
     settings.setValue('wheelPosMax',str(ui.spinBox_WheelPosMax.value()))
     settings.setValue('wheelPosMin',str(ui.spinBox_WheelPosMin.value()))
@@ -436,6 +431,7 @@ def updateSetup():
     settings.setValue('setupComments' ,str(ui.textEdit_SetupComments.toPlainText()))
     settings.setValue('filename', ui.lineEdit_FileName.text())
 
+# Abre dialogo para escolher arquivo
 def selectFile():
     fileName, _ = QtWidgets.QFileDialog.getOpenFileName(MainWindow, "Escolha arquivo .txt",
                                                         "", "All Files (*);;Text Files (*.txt)")
@@ -447,8 +443,8 @@ def selectFile():
         return
 
 
-# Funcao para atualizar campos através dos valores contidos no arquivo setup. A função lê o arquivo e define os valores dos campos relacionados aos dados do arquivo
-# Função para definir nome do arquivo txt no qual os dados serão gravados, abrir este arquivo e gravar dados de setup e os dados recebidos através na porta seria
+# Função para definir nome do arquivo txt no qual os dados serão gravados,
+# abrir este arquivo e gravar dados de setup e os dados recebidos através na porta seria
 def beginDataSave():
     global file
     arquivo = ui.lineEdit_FileName.text()  # variável arquivo recebe o nome que o usuário informa na interface do arquivo a ser criado
@@ -481,13 +477,15 @@ def beginDataSave():
 def stopDataSave():
     global file
     file.stopDataSave()
-    ui.label_12.setText("No saving...")  # informa ao usuário a situação atual de gravação de dados
+    ui.label_12.setText("Not saving...")  # informa ao usuário a situação atual de gravação de dados
 
 
 def stopProgram():
     global stop
     stop = 1  # atualiza o valor da variavel stop, a qual é usada para verificar o funcionamento da interface
     arq_laptime.close()
+    # Fecha arquivo file e porta serial
+    stopDataSave()
     if porta.isOpen():
         porta.flushInput()
         porta.close()

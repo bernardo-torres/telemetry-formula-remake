@@ -169,10 +169,9 @@ class File:
 
     # Função para parar a gravação dos dados no arquivo txt
     def stopDataSave(self):
-        self.save = 0  # atualiza o valor da variavel save, a qual é usada para verificar se está ocorrendo ou não não gravação dos dados
-        self.arq.close()
-        # Função para pausar o funcionamento da interface
-
+        if self.save != 0:
+            self.save = 0  # atualiza o valor da variavel save, a qual é usada para verificar se está ocorrendo ou não não gravação dos dados
+            self.arq.close()
 
 class ErrorLog():
     def __init__(self, logInstance):
