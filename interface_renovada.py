@@ -5,8 +5,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 from time import time
 import glob
-import PyQt5.sip
-from datetime import datetime
 import numpy as np
 # Se for instalar um pacote, NÃO instalar o serial, apenas o pyserial
 import serial
@@ -17,27 +15,22 @@ from interface_generated import *
 
 # settings armazena os campos de configuracao na interface
 settings = QtCore.QSettings('test', 'interface_renovada')
-
-# Classes globais
-file = File()
-
-stop = 1
-arq = 0
-arq_laptime = 0
-array_leitura = np.array([]).astype('int')
-x = np.array([]).astype('int')
-y = np.array([]).astype('int')
-s = np.array([]).astype('int')
-divisor = 1
 array_lap = np.array([]).astype('int')
 aux_time = np.array([0]).astype('int')
 # Vetores para mostrar últimos dados recebidos (TEMPORARIO)
-buf = np.array(['', '', '', '', '', ''], dtype=object)
+
 sec = 0
 cont = 0
 exe_time = 0
 
 porta = serial.Serial()
+
+
+# Concatena vetor em uma string separada por delimiter
+def vectorToString(line, delimiter):
+    string = delimiter.join(str(x) for x in line)
+    string = string + '\n'
+    return string
 
 
 # A função updateInitValues atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
@@ -108,19 +101,19 @@ def serialPorts():
 # Função que inicia a execução do programa
 def startProgram():
     try:
-        global stop, updateTime, arq_laptime, errorLog
-        stop = 0
-        updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
+        global errorLog, program
         # abre e configura a porta serial utilizando os valores definidos pelo usuário através da interface
         porta.baudrate = int(ui.comboBox_Baudrate.currentText())
         porta.port = str(ui.comboBox_SerialPorts.currentText())
         porta.timeout = None
         porta.open()
-        now = datetime.now()
-        arquivo = "tempos_de_volta_" + str(now.hour) + "_" + str(now.minute) + ".txt"
-        arq_laptime = open(arquivo, 'w')
         # Inicializa programa
-        program = Program()
+        program.data.wheelPosMax = ui.spinBox_WheelPosMax.value()
+        program.data.wheelPosMin = ui.spinBox_WheelPosMin.value()
+        program.stop = 0
+        program.lapTimeFile.startDataSave("tempos_de_volta")
+        program.program()
+
         print("Saiu do programa")
 
 # O erro de porta serial é analisado pela exceção serial.SerialException. Esse erro é tratado pausando o programa e
@@ -136,8 +129,9 @@ def startProgram():
         dlg.exec_()
 
 
-# Le buffer da porta serial
-def readAll(bufferSize, firstByteValue):
+# Le buffer da porta serial. bufferSize é uma lista com os tamanhos dos pacotes e firstByteValues
+# é uma lista com os numeros dos pacotes (1,2,3,4)
+def readAll(bufferSize, firstByteValues):
     while True:
         # Espera receber algo na porta serial
         while (porta.inWaiting() == 0):
@@ -145,7 +139,7 @@ def readAll(bufferSize, firstByteValue):
         read_buffer = b''
         # Le primeiro e segundo bytes
         firstByte = porta.read()
-        if int.from_bytes(firstByte, byteorder='big') == firstByteValue:
+        if int.from_bytes(firstByte, byteorder='big') in firstByteValues:
             read_buffer += firstByte
             # Le o segundo byte de inicio
             a = porta.read()
@@ -159,51 +153,146 @@ def readAll(bufferSize, firstByteValue):
             errorLog.writeErrorLog("Leitura: primeiro byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se de 1 a 4")
     while True:
         # Le resto do buffer
-        byte = porta.read(size=bufferSize - 2)
+        index = int.from_bytes(firstByte, byteorder='big') - 1
+        byte = porta.read(size=int(bufferSize[index] - 2))
         read_buffer += byte
 
-        if(len(read_buffer) == bufferSize):
-            if int(read_buffer[bufferSize-2]) == 9:
+        if(len(read_buffer) == bufferSize[index]):
+            if int(read_buffer[bufferSize[index]-2]) == 9:
                 # Chegou no fim do pacote
-                if int(read_buffer[bufferSize-1]) == 10:
+                if int(read_buffer[bufferSize[index]-1]) == 10:
                     break
                 else:
                     errorLog.writeErrorLog("Leitura: ultimo dado diferente de byte 10")
+                    return []
             else:
                 errorLog.writeErrorLog("Leitura: penultimo dado diferente de byte 9")
+                return []
+
     return read_buffer
 
 
 # Função que executa o programa
 class Program():
     def __init__(self):
-        # Data armazena os dados lidos
-        self.data = Data()
-        self.program()
+        ui.pushButton_SaveFile.clicked.connect(self.beginDataSave)  # botão para iniciar gravação de dados no txt
+        ui.pushButton_StopSaveFile.clicked.connect(self.stopDataFileSave)  # botão para parar a gravação de dados txt
+        ui.pushButton_PauseProgram.clicked.connect(self.stopProgram)  # botão para pausar o programa
+        self.updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
 
+        self.data = Data()
+        self.dataFile = File()
+        self.lapTimeFile = File()
+        self.lastBuffers = np.array(['', '', '', '', '', ''], dtype=object)
+        # Dicionario de funcoes: permite chamar funcoes fazendo updateInterfaceFunctions[key], onde key é 1,2,3 ou 4
+        self.updateInterfaceFunctions = {1: updateP1Interface, 2: updateP2Interface, 3: updateP3Interface, 4: updateP4Interface}
+        self.stop = 1
+
+    def stopProgram(self):
+        self.stop = 1  # atualiza o valor da variavel stop, a qual é usada para verificar o funcionamento da interface
+        self.lapTimeFile.stopDataSave()
+        # Fecha arquivo file e porta serial
+        self.stopDataFileSave()
+        if porta.isOpen():
+            porta.flushInput()
+            porta.close()
+        else:
+            pass
+
+    # program() roda em loop
     def program(self):
-        global stop, sec, updateTime
-        if (stop == 0):
+        global sec
+        if (self.stop == 0):
             sec = time()
             # Le dados da porta serial
-            self.buffer = readAll(16, 1)
-            self.test = np.zeros(16)
-            for i in range(0, len(self.buffer)):
-                self.test[i] = self.buffer[i]
-            self.test = self.test.astype(int)
-            print(self.test)
+            packIndexes = [1, 2, 3, 4]
+            packSizes = [16, 22, 15, 30]
+            self.buffer = readAll(packSizes, packIndexes)
 
-            # chamada da função updateLabel para analisar os dados recebidos atualizar os mostradores da interface
-            updateLabel(self.test, self.data)
+            if len(self.buffer) != 0:
+                # chamada da função updateLabel para analisar os dados recebidos atualizar os mostradores da interface
+                self.updateLabel(self.buffer)
 
             # Apos updateTime segundos, chama funcao program() novamente
-            QtCore.QTimer.singleShot(updateTime, lambda: self.program())
+            QtCore.QTimer.singleShot(self.updateTime, lambda: self.program())
+
+    # Função para definir nome do arquivo txt no qual os dados serão gravados,
+    # abrir este arquivo e gravar dados de setup e os dados recebidos através na porta seria
+    def beginDataSave(self):
+
+        arquivo = ui.lineEdit_FileName.text()  # variável arquivo recebe o nome que o usuário informa na interface do arquivo a ser criado
+        self.dataFile.startDataSave(arquivo)
+        self.dataFile.writeRow("***\n")
+        self.dataFile.writeRow("CARRO: " + str(ui.lineEdit_SetupCar.text()) + "\n")
+        self.dataFile.writeRow("PISTA: " + str(ui.lineEdit_SetupTrack.text()) + "\n")
+        self.dataFile.writeRow("PILOTO: " + str(ui.lineEdit_SetupDriver.text()) + "\n")
+        self.dataFile.writeRow("TEMPERATURA AMBIENTE: " + str(ui.lineEdit_SetupTemperature.text()) + "\n")
+        self.dataFile.writeRow("ANTIROLL: " +str(ui.lineEdit_SetupAntiroll.text()) + "\n")
+        self.dataFile.writeRow("PRESSAO PNEUS DIANTEIROS: " +str(ui.lineEdit_SetupTirePressureFront.text()) + "\n")
+        self.dataFile.writeRow("PRESSAO PNEUS TASEIROS: " +str(ui.lineEdit_SetupTirePressureRear.text()) + "\n")
+        self.dataFile.writeRow("ANGULO DE ATAQUE DA ASA: " +str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")
+        self.dataFile.writeRow("MAPA MOTOR: " +str(ui.lineEdit_SetupEngineMap.text()) + "\n")
+        self.dataFile.writeRow("BALANCE BAR: " +str(ui.lineEdit_SetupBalanceBar.text()) + "\n")
+        self.dataFile.writeRow("DIFERENCIAL: " +str(ui.lineEdit_SetupDifferential.text()) + "\n")
+        self.dataFile.writeRow("TAXA DE AQUISICAO: " +str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")
+        self.dataFile.writeRow("COMENTARIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
+        self.dataFile.writeRow("POSICAO MAXIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMax.value()) + "\n")
+        self.dataFile.writeRow("POSICAO MINIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMin.value()) + "\n")
+        self.dataFile.writeRow("SUSPENSAO: " +str(ui.lineEdit_CalibrationConstant.text()) + "\n")
+        self.dataFile.writeRow("PACOTE1 40 " + vectorToString(self.data.p1Order, ' '))
+        self.dataFile.writeRow("PACOTE2 20 " + vectorToString(self.data.p2Order, ' '))
+        self.dataFile.writeRow("PACOTE3 2 " + vectorToString(self.data.p3Order, ' '))
+        self.dataFile.writeRow("PACOTE4 20 " + vectorToString(self.data.p4Order, ' '))
+        # self.dataFile.writeRow("PACOTE1 40 acelY acelX acelZ velDD velT sparkCut suspPos time\n")
+        # self.dataFile.writeRow("PACOTE2 20 oleoP fuelP tps rearBrakeP frontBrakeP volPos beacon correnteBat rpm time2\n")
+        # self.dataFile.writeRow("PACOTE3 2 ect batVoltage releBomba releVent pduTemp tempDiscoD tempDiscoE time3\n")
+        self.dataFile.writeRow("***\n\n")
+
+        ui.label_12.setText("Saving...")  # informa ao usuário a situação atual de gravação de dados
+
+    def stopDataFileSave(self):
+        self.dataFile.stopDataSave()
+        ui.label_12.setText("Not saving...")  # informa ao usuário a situação atual de gravação de dados
+
+    def updateLabel(self, buffer):
+        global aux_time, sec, cont, exe_time
+
+        packID = buffer[0]
+        # Atualiza dados em Data e atualiza campos respectivos na interface
+        if (self.data.updateDataFunctions[packID](buffer) == 0):
+            errorLog.writeErrorLog(" updateData: Pacote " + str(packID) + "com tamanho diferente do configurado")
+        self.updateInterfaceFunctions[packID](self.data)
+
+        # Grava linha buffer no arquivo
+        if self.dataFile.save == 1:
+            string = self.data.createPackString(buffer[0])
+            self.dataFile.writeRow(string)
+
+        # Atualiza graficos
+        updatePlot(self.data)
+
+        # Atualiza o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
+        string = vectorToString(self.lastBuffers, '\n')
+        self.lastBuffers = np.roll(self.lastBuffers, 1)
+        self.lastBuffers[0] = vectorToString(buffer, ' ')
+        ui.textBrowser_Buffer.setText(string)
+
+        if (self.stop == 0):
+            # As seguintes linhas contam o tempo de uma execução do programa e quantas execuções foram realizadas
+            time_init = sec
+            sec = time()
+            milli_sec = (sec - time_init) * 1000  # tempo final - tempo inicial convertido para milissegundos
+            exe_time = exe_time + milli_sec  # tempo total de execução
+            cont = cont + 1  # número de execuções
+            # As linhas a seguir printam no prompt o tempo médio de execução a cada mil execuções até 5000
+            if (cont == 1 or cont == 1000 or cont == 2000 or cont == 3000 or cont == 4000 or cont == 5000):
+                print("tempo médio:", exe_time / cont)
+                print("qtd de execuções", cont)
 
 
 def updatePlot(data):
     # as linhas a seguir plotam os gráficos selecionados atráves dos checkBox e define as cores de cada gráfico.
     # Os gráficos são compostos pelos últimos 50 pontos do dado
-
     # Arrasta vetor pto lado para que novo valor possa ser inserido
     data.rollArrays()
 
@@ -216,60 +305,7 @@ def updatePlot(data):
     if ui.checkBox_Voltage.isChecked() == 1:
         ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayBattery, pen='b')
     if ui.checkBox_OilPressure.isChecked() == 1:
-        ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayOilP, pen='y')
-
-
-# Concatena vetor em uma string separada por delimiter
-def vectorToString(line, delimiter):
-    string = delimiter.join(str(x) for x in line)
-    string = string + '\n'
-    return string
-
-
-def updateLabel(buffer, data):
-    global aux_time, sec, cont, exe_time, file, buf
-
-    # Atualiza dados em Data e atualiza campos respectivos na interface
-    if buffer[0] == 1:
-        data.updateP1Data(buffer)
-        # print(buffer[0])
-        updateP1Interface(data)
-    elif buffer[0] == 2:
-        data.updateP2Data(buffer)
-        updateP2Interface(data)
-    elif buffer[0] == 3:
-        data.updateP3Data(buffer)
-        updateP3Interface(data)
-    elif buffer[0] == 4:
-        data.updateP4Data(buffer)
-        updateP4Interface(data)
-
-    # Grava linha buffer no arquivo
-    if file.save == 1:
-        string = data.createPackString(1)
-        file.writeRow(string)
-
-    # Atualiza graficos
-    updatePlot(data)
-
-    # Atualiza o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
-    string = vectorToString(buf, '\n')
-    buf = np.roll(buf, 1)
-    buf[0] = vectorToString(buffer, ' ')
-    ui.textBrowser_Buffer.setText(string)
-
-    if (stop == 0):
-        # As seguintes linhas contam o tempo de uma execução do programa e quantas execuções foram realizadas
-        time_init = sec
-        sec = time()
-        milli_sec = (sec - time_init) * 1000  # tempo final - tempo inicial convertido para milissegundos
-        exe_time = exe_time + milli_sec  # tempo total de execução
-        cont = cont + 1  # número de execuções
-        # As linhas a seguir printam no prompt o tempo médio de execução a cada mil execuções até 5000
-        if (cont == 1 or cont == 1000 or cont == 2000 or cont == 3000 or cont == 4000 or cont == 5000):
-            print("tempo médio:", exe_time / cont)
-            print("qtd de execuções", cont)
-
+        ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayOilP, pen='k')
 
 # Função que atualiza os mostradores relacionados aos dados do pacote 1
 # Pacote 1: X_Accelerometer, Y_Accelerometer, Z_Accelerometer, Sparcut Relay, Speed, Suspension Course, time
@@ -404,7 +440,7 @@ def updateP4Interface(data):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package3.setItem(i, 1, item)
 
-      item = QTableWidgetItem(str(data.dic['time4']))
+    item = QTableWidgetItem(str(data.dic['time4']))
     item.setTextAlignment(QtCore.Qt.AlignCenter)
     ui.tableWidget_Package3.setItem(i+1, 1, item)
 
@@ -443,56 +479,6 @@ def selectFile():
         return
 
 
-# Função para definir nome do arquivo txt no qual os dados serão gravados,
-# abrir este arquivo e gravar dados de setup e os dados recebidos através na porta seria
-def beginDataSave():
-    global file
-    arquivo = ui.lineEdit_FileName.text()  # variável arquivo recebe o nome que o usuário informa na interface do arquivo a ser criado
-    file.startDataSave(arquivo)
-    file.writeRow("***\n")
-    file.writeRow("CARRO: " + str(ui.lineEdit_SetupCar.text()) + "\n")
-    file.writeRow("PISTA: " + str(ui.lineEdit_SetupTrack.text()) + "\n")
-    file.writeRow("PILOTO: " + str(ui.lineEdit_SetupDriver.text()) + "\n")
-    file.writeRow("TEMPERATURA AMBIENTE: " + str(ui.lineEdit_SetupTemperature.text()) + "\n")
-    file.writeRow("ANTIROLL: " +str(ui.lineEdit_SetupAntiroll.text()) + "\n")
-    file.writeRow("PRESSAO PNEUS DIANTEIROS: " +str(ui.lineEdit_SetupTirePressureFront.text()) + "\n")
-    file.writeRow("PRESSAO PNEUS TASEIROS: " +str(ui.lineEdit_SetupTirePressureRear.text()) + "\n")
-    file.writeRow("ANGULO DE ATAQUE DA ASA: " +str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")
-    file.writeRow("MAPA MOTOR: " +str(ui.lineEdit_SetupEngineMap.text()) + "\n")
-    file.writeRow("BALANCE BAR: " +str(ui.lineEdit_SetupBalanceBar.text()) + "\n")
-    file.writeRow("DIFERENCIAL: " +str(ui.lineEdit_SetupDifferential.text()) + "\n")
-    file.writeRow("TAXA DE AQUISICAO: " +str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")
-    file.writeRow("COMENTARIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
-    file.writeRow("POSICAO MAXIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMax.value()) + "\n")
-    file.writeRow("POSICAO MINIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMin.value()) + "\n")
-    file.writeRow("SUSPENSAO: " +str(ui.lineEdit_CalibrationConstant.text()) + "\n")
-    file.writeRow("PACOTE1 40 acelY acelX acelZ velDD velT sparkCut suspPos time\n")
-    file.writeRow("PACOTE2 20 oleoP fuelP tps rearBrakeP frontBrakeP volPos beacon correnteBat rpm time2\n")
-    file.writeRow("PACOTE3 2 ect batVoltage releBomba releVent pduTemp tempDiscoD tempDiscoE time3\n")
-    file.writeRow("***\n\n")
-
-    ui.label_12.setText("Saving...")  # informa ao usuário a situação atual de gravação de dados
-
-
-def stopDataSave():
-    global file
-    file.stopDataSave()
-    ui.label_12.setText("Not saving...")  # informa ao usuário a situação atual de gravação de dados
-
-
-def stopProgram():
-    global stop
-    stop = 1  # atualiza o valor da variavel stop, a qual é usada para verificar o funcionamento da interface
-    arq_laptime.close()
-    # Fecha arquivo file e porta serial
-    stopDataSave()
-    if porta.isOpen():
-        porta.flushInput()
-        porta.close()
-    else:
-        pass
-
-
 def exit():
     sys.exit(app.exec_())
 
@@ -504,15 +490,14 @@ MainWindow = QtWidgets.QMainWindow()
 ui = Ui_MainWindow()
 ui.setupUi(MainWindow)
 
+# Classes globais
 errorLog = ErrorLog(ui.errorLog)
+program = Program()
 
 # ações
 ui.pushButtonOpenFile.clicked.connect(selectFile)
 ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
-ui.pushButton_PauseProgram.clicked.connect(stopProgram)  # botão para pausar o programa
 ui.pushButton_StartProgram.clicked.connect(startProgram)  # botão para iniciar o programa
-ui.pushButton_SaveFile.clicked.connect(beginDataSave)  # botão para iniciar gravação de dados no txt
-ui.pushButton_StopSaveFile.clicked.connect(stopDataSave)  # botão para parar a gravação de dados txt
 ui.pushButton_UpdatePorts.clicked.connect(updatePorts)  # botão para atualizar as portas seriis disponíveis
 ui.pushButton_SaveSetupValues.clicked.connect(updateSetup)  # botão para atualizar os dados de setup no arquivo txt
 ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interface
@@ -527,14 +512,10 @@ ui.graphicsView_DiagramaGG.setXRange(-2, 2)
 ui.graphicsView_DiagramaGG.setYRange(-2, 2)
 
 # cores do gráfico
-#ui.checkBox_Voltage.setText(_translate("MainWindow", "Voltage"))
 ui.checkBox_OilPressure.setStyleSheet('color:blue')
-#ui.checkBox_FuelPressure.setText(_translate("MainWindow", "Fuel Pressure"))
 ui.checkBox_FuelPressure.setStyleSheet('color:green')
-#ui.checkBox_EngineTemperature.setText(_translate("MainWindow", "Engine Temp."))
 ui.checkBox_EngineTemperature.setStyleSheet('color:red')
-#ui.checkBox_OilPressure.setText(_translate("MainWindow", "Oil Pressure "))
-ui.checkBox_OilPressure.setStyleSheet('color:yellow')
+ui.checkBox_OilPressure.setStyleSheet('color:black')
 
 # Mostra a janela e fecha o programa quando ela é fechada (?)
 MainWindow.show()

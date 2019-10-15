@@ -9,13 +9,15 @@ class Data:
     def __init__(self):
         self.wheelPosMax = 0
         self.wheelPosMin = 0
-        self.p1Size = 14
+        self.p1Size = 16
         self.p2Size = 22
         self.p3Size = 15
         self.p4Size = 30
         self.p1Order = ['acelX', 'acelY', 'acelZ', 'velDD', 'velT', 'sparkCut', 'suspPos', 'time']
         self.p2Order = ['oleoP', 'fuelP', 'tps', 'rearBrakeP', 'frontBrakeP', 'volPos', 'beacon', 'correnteBat', 'rpm', 'time2']
         self.p3Order = ['ect', 'batVoltage', 'releBomba', 'releVent', 'pduTemp', 'tempDiscoD', 'tempDiscoE', 'time3']
+        self.p4Order = ['ext1', 'ext2', 'ext3', 'ext4', 'ext5', 'ext6', 'ext7', 'ext8', 'time4']
+        self.updateDataFunctions = {1: self.updateP1Data, 2: self.updateP2Data, 3: self.updateP3Data, 4: self.updateP4Data}
 
         self.dic = {
             'acelX': 0,
@@ -56,14 +58,27 @@ class Data:
         self.arrayTime2 = np.zeros(50)
         self.arrayTime3 = np.zeros(50)
 
+    # Caso valor seja signed, é necessario trata-lo como complemento de 2
+    def twosComp(self, number, bits):
+        if (number & (1 << (bits - 1))) != 0:
+            number = number - (1 << bits)        # compute negative value
+        return number
+
     def updateP1Data(self, buffer):
+        # recebe o valor contido na lista de dados(leitura) em suas respectivas posições e realiza as operações de deslocamento e soma binária
         if ((int(buffer[0]) == 1) and (len(buffer) == self.p1Size)):  # testa se é o pacote 1 e está completo
-            self.dicRaw['acelX'] = (int(buffer[2]) << 8) + int(buffer[3])  # recebe o valor contido na lista de dados(leitura) em suas respectivas posições e realiza as operações de deslocamento e soma binária
-            self.dic['acelX'] = round(float(self.dicRaw['acelX'] / 16384), 3)  #
+            self.dicRaw['acelX'] = (int(buffer[2]) << 8) + int(buffer[3])
+            self.dicRaw['acelX'] = self.twosComp(self.dicRaw['acelX'], 16)
+            self.dic['acelX'] = round(float(self.dicRaw['acelX'] / 16384), 3)
+
             self.dicRaw['acelY'] = (int(buffer[4]) << 8) + int(buffer[5])
+            self.dicRaw['acelY'] = self.twosComp(self.dicRaw['acelY'], 16)
             self.dic['acelY'] = round(float(self.dicRaw['acelY'] / 16384), 3)
+
             self.dicRaw['acelZ'] = (int(buffer[6]) << 8) + int(buffer[7])
+            self.dicRaw['acelZ'] = self.twosComp(self.dicRaw['acelZ'], 16)
             self.dic['acelZ'] = round(float(self.dicRaw['acelZ'] / 16384), 3)
+
             self.dic['velDD'] = int(buffer[8])
             self.dicRaw['velDD'] = int(buffer[8])
             self.dic['velT'] = int(buffer[9])
@@ -74,13 +89,16 @@ class Data:
             self.dic['suspPos'] = self.dicRaw['suspPos']
             self.dicRaw['time'] = ((buffer[12]) << 8) + int(buffer[13])
             self.dic['time'] = 25 * self.dicRaw['time']
+            return 1
+        else:
+            return 0
 
     def updateP2Data(self, buffer):
         if ((int(buffer[0]) == 2) and (len(buffer) == self.p2Size)):  # testa se é o pacote 2 e está completo
             self.dicRaw['oleoP'] = (int(buffer[2]) << 8) + int(buffer[3])
-            self.dic['oleoP'] = round(float(self.dicRaw['oleoP'] * 0.001), 2)
+            self.dic['oleoP'] = round(float(self.dicRaw['oleoP'] * 0.001), 4)
             self.dicRaw['fuelP'] = (int(buffer[4]) << 8) + int(buffer[5])
-            self.dic['fuelP'] = round(float(self.dicRaw['fuelP'] * 0.001), 2)
+            self.dic['fuelP'] = round(float(self.dicRaw['fuelP'] * 0.001), 4)
             self.dicRaw['tps'] = (int(buffer[6]) << 8) + int(buffer[7])
             self.dic['tps'] = self.dicRaw['tps']
             self.dicRaw['rearBrakeP'] = (int(buffer[8]) << 8) + int(buffer[9])
@@ -88,7 +106,8 @@ class Data:
             self.dicRaw['frontBrakeP'] = (int(buffer[10]) << 8) + int(buffer[11])
             self.dic['frontBrakeP'] = round(self.dicRaw['frontBrakeP'] * 0.02536, 1)
             self.dicRaw['volPos'] = (int(buffer[12]) << 8) + int(buffer[13])
-            self.dic['volPos'] = round(((self.dicRaw['volPos'] - self.wheelPosMin) * 240 / (self.wheelPosMax - self.wheelPosMin) - 120), 2)
+            if self.wheelPosMax - self.wheelPosMin != 0:
+                self.dic['volPos'] = round(((self.dicRaw['volPos'] - self.wheelPosMin) * 240 / (self.wheelPosMax - self.wheelPosMin) - 120), 2)
             self.dicRaw['beacon'] = int(buffer[14] >> 7)
             self.dic['beacon'] = self.dicRaw['beacon']
             self.dicRaw['correnteBat'] = ((int(buffer[14]) & 127) << 8) + int(buffer[15])
@@ -97,6 +116,9 @@ class Data:
             self.dic['rpm'] = self.dicRaw['rpm']
             self.dicRaw['time2'] = (int(buffer[18]) << 8) + int(buffer[19])
             self.dic['time2'] = 25 * self.dicRaw['time2']
+            return 1
+        else:
+            return 0
 
     def updateP3Data(self, buffer):
         if ((int(buffer[0]) == 3) and (len(buffer) == self.p3Size)):  # testa se é o pacote 3 e está completo
@@ -117,6 +139,9 @@ class Data:
             self.dic['tempDiscoD'] = round(float(self.dicRaw['tempDiscoD']), 2)
             self.dicRaw['time3'] = (buffer[13] << 8) + buffer[14]
             self.dic['time3'] = 25 * self.dicRaw['time3']
+            return 1
+        else:
+            return 0
 
     def updateP4Data(self, buffer):
         if ((int(buffer[0]) == 4) and (len(buffer) == self.p4Size)):  # testa se é o pacote 3 e está completo
@@ -126,6 +151,9 @@ class Data:
                 self.dic['ext'][i] = self.dicRaw['ext'][i]
             self.dicRaw['time4'] = (buffer[26] << 8) + (buffer[27])
             self.dic['time4'] = 25 * self.dicRaw['time4']
+            return 1
+        else:
+            return 0
 
     def rollArrays(self):
         self.arrayBattery = np.roll(self.arrayBattery, -1)
@@ -142,9 +170,18 @@ class Data:
         self.arrayTime3[-1] = self.dic['time3']
 
     def createPackString(self, packNo):
+        if packNo == 1:
+            list = self.p1Order
+        elif packNo == 2:
+            list = self.p2Order
+        elif packNo == 3:
+            list = self.p3Order
+        elif packNo == 4:
+            list = self.p4Order
+
         delimiter = ' '
-        vec = []
-        for key in self.p1Order:
+        vec = [packNo]
+        for key in list:
             vec.append(self.dicRaw[key])
         string = delimiter.join(str(x) for x in vec)
         string = string + '\n'
@@ -172,6 +209,7 @@ class File:
         if self.save != 0:
             self.save = 0  # atualiza o valor da variavel save, a qual é usada para verificar se está ocorrendo ou não não gravação dos dados
             self.arq.close()
+
 
 class ErrorLog():
     def __init__(self, logInstance):

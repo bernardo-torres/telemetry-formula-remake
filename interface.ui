@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1369</width>
-    <height>1065</height>
+    <height>732</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -818,9 +818,27 @@
         <rect>
          <x>30</x>
          <y>21</y>
-         <width>481</width>
+         <width>521</width>
          <height>281</height>
         </rect>
+       </property>
+       <property name="backgroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+       <property name="foregroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
        </property>
       </widget>
       <widget class="QCheckBox" name="checkBox_Voltage">
@@ -1303,6 +1321,24 @@
          <width>371</width>
          <height>271</height>
         </rect>
+       </property>
+       <property name="backgroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+       <property name="foregroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
        </property>
       </widget>
      </widget>
@@ -2370,7 +2406,7 @@
      </column>
      <item row="0" column="0">
       <property name="text">
-       <string>Beacon</string>
+       <string>Oil Pressure</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2386,7 +2422,7 @@
      </item>
      <item row="0" column="2">
       <property name="text">
-       <string>-</string>
+       <string>Bar</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2394,7 +2430,7 @@
      </item>
      <item row="1" column="0">
       <property name="text">
-       <string>Break Pressure(F)</string>
+       <string>Fuel Pressure</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2418,7 +2454,7 @@
      </item>
      <item row="2" column="0">
       <property name="text">
-       <string>Break Pressure(R)</string>
+       <string>TPS</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2434,7 +2470,7 @@
      </item>
      <item row="2" column="2">
       <property name="text">
-       <string>Bar</string>
+       <string>%</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2442,7 +2478,7 @@
      </item>
      <item row="3" column="0">
       <property name="text">
-       <string>Current</string>
+       <string>Break P (R)</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2458,7 +2494,7 @@
      </item>
      <item row="3" column="2">
       <property name="text">
-       <string>A</string>
+       <string>Bar</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2466,7 +2502,7 @@
      </item>
      <item row="4" column="0">
       <property name="text">
-       <string>Fuel Pressure</string>
+       <string>Break P (F)</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2490,7 +2526,7 @@
      </item>
      <item row="5" column="0">
       <property name="text">
-       <string>Oil Pressure</string>
+       <string>Wheel Position</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2506,7 +2542,7 @@
      </item>
      <item row="5" column="2">
       <property name="text">
-       <string>Bar</string>
+       <string/>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2514,7 +2550,7 @@
      </item>
      <item row="6" column="0">
       <property name="text">
-       <string>RPM</string>
+       <string>Beacon</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2530,7 +2566,7 @@
      </item>
      <item row="6" column="2">
       <property name="text">
-       <string>km/h</string>
+       <string>-</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2538,7 +2574,7 @@
      </item>
      <item row="7" column="0">
       <property name="text">
-       <string>Time</string>
+       <string>Current</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2554,7 +2590,7 @@
      </item>
      <item row="7" column="2">
       <property name="text">
-       <string>ms</string>
+       <string/>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2562,7 +2598,7 @@
      </item>
      <item row="8" column="0">
       <property name="text">
-       <string>TPS</string>
+       <string>RPM</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2578,7 +2614,7 @@
      </item>
      <item row="8" column="2">
       <property name="text">
-       <string>%</string>
+       <string/>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2586,7 +2622,7 @@
      </item>
      <item row="9" column="0">
       <property name="text">
-       <string>Wheel Position</string>
+       <string>Time</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2602,7 +2638,7 @@
      </item>
      <item row="9" column="2">
       <property name="text">
-       <string>Degree ( º )</string>
+       <string>ms</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2699,7 +2735,7 @@
      </column>
      <item row="0" column="0">
       <property name="text">
-       <string>Battery Voltage</string>
+       <string>Engine Temp.</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2715,7 +2751,7 @@
      </item>
      <item row="0" column="2">
       <property name="text">
-       <string>Volts</string>
+       <string>ºC</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2723,7 +2759,7 @@
      </item>
      <item row="1" column="0">
       <property name="text">
-       <string>Break Temp. (F)</string>
+       <string>Battery Voltage</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2739,7 +2775,7 @@
      </item>
      <item row="1" column="2">
       <property name="text">
-       <string>ºC</string>
+       <string>V</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2747,7 +2783,7 @@
      </item>
      <item row="2" column="0">
       <property name="text">
-       <string>Break Temp. (R)</string>
+       <string>Fuel Pump Relay</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2763,7 +2799,7 @@
      </item>
      <item row="2" column="2">
       <property name="text">
-       <string>ºC</string>
+       <string>=</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2771,7 +2807,7 @@
      </item>
      <item row="3" column="0">
       <property name="text">
-       <string>Engine Temp.</string>
+       <string>Fan Relay</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2787,7 +2823,7 @@
      </item>
      <item row="3" column="2">
       <property name="text">
-       <string>ºC</string>
+       <string/>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2795,7 +2831,7 @@
      </item>
      <item row="4" column="0">
       <property name="text">
-       <string>Fan Realy</string>
+       <string>PDU Temp</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2819,7 +2855,7 @@
      </item>
      <item row="5" column="0">
       <property name="text">
-       <string>Fuel Pump Relay</string>
+       <string>Front Brake T</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2843,7 +2879,7 @@
      </item>
      <item row="6" column="0">
       <property name="text">
-       <string>Relay Box T</string>
+       <string>Rear Brake T</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
