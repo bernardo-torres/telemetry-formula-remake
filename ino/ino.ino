@@ -1,7 +1,7 @@
 
 byte buf[16];
 byte buf2[22];
-byte buf3[14];
+byte buf3[16];
 int a, b, c;
  int i = 0;
   int j = 255;
@@ -41,6 +41,17 @@ void setup() {
    buf2[20] = 9;
    buf2[21] = 10;
 
+  buf3[0] = 3;
+   buf3[1] = 5;
+   buf3[4] = 1350>>8;
+   buf3[5] = 1350;
+   buf3[8] = 100;
+   buf3[9] = 85;
+   buf3[10] = 1 << 7;
+   buf3[11] = 0;
+   buf3[12] = 0;
+   buf3[14] = 9;
+   buf3[15] = 10;
 
 }
 
@@ -59,17 +70,26 @@ void loop()
  if (buf[13] == 255){
     buf[12] = buf[12] + 1;
     buf2[18] = buf2[18] + 1;
+    buf3[12] = buf3[12] +1;
+    
  } 
  buf[13] = buf[13] + 1;
  buf2[19] = buf2[19] + 1;
+ buf3[13] = buf3[13] +1;
 
- aux = 2*i;
+ aux = 200*i;
  buf2[2]= aux >> 8;
  buf2[3]= aux;
+
+ aux = 5*i;
+ buf3[2]= aux >> 8;
+ buf3[3]= aux;
 
  aux = 3*i;
  buf2[4]= aux >> 8;
  buf2[5]= aux;
+
+ 
 
  if( i == 255 ){
    i = 0;
@@ -80,10 +100,13 @@ void loop()
  }
  j++;
  
-if (k == 1){
+if (k%2 == 0){
   Serial.write(buf2, 22);
-  k = -1;
 }
+if(k == 10){
+  Serial.write(buf3, 16);
+ k = -1; 
+ }
 k++;
 Serial.write(buf, 16);
 

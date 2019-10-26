@@ -6,12 +6,10 @@ import sys
 from time import time
 import glob
 import numpy as np
-# Se for instalar um pacote, NÃO instalar o serial, apenas o pyserial
+
 import serial
-from serial import Serial
-from serial import SerialException
-from classData import Data, File, ErrorLog
-from interface_generated import *
+from classes import Data, File, Log
+from interface_generated import Ui_MainWindow
 
 # settings armazena os campos de configuracao na interface
 settings = QtCore.QSettings('test', 'interface_renovada')
@@ -27,9 +25,10 @@ porta = serial.Serial()
 
 
 # Concatena vetor em uma string separada por delimiter
-def vectorToString(line, delimiter):
+def vectorToString(line, delimiter, addNewLine=True):
     string = delimiter.join(str(x) for x in line)
-    string = string + '\n'
+    if addNewLine:
+        string = string + '\n'
     return string
 
 
@@ -41,11 +40,11 @@ def updateInitValues():
         filename = settings.value('filename')
         ui.lineEdit_FileName.setText(filename)
     except:
-        errorLog.writeErrorLog("Erro ao carregar config do arquivo")
+        errorLog.writeLog("Erro ao carregar config do arquivo")
     try:
         ui.textEdit_SetupComments.setText(settings.value('setupComments'))
-        ui.spinBox_WheelPosMax.setValue(int(settings.value('wheelPosMax')))
-        ui.spinBox_WheelPosMin.setValue(int(settings.value('wheelPosMin')))
+        ui.lineEdit_WheelPosMax.setText(settings.value('wheelPosMax'))
+        ui.lineEdit_WheelPosMin.setText(settings.value('wheelPosMin'))
         ui.lineEdit_CalibrationConstant.setText(settings.value('calibConstant'))
         ui.lineEdit_SetupCar.setText(settings.value('setupCar'))
         ui.lineEdit_SetupTrack.setText(settings.value('setupTrack'))
@@ -61,8 +60,15 @@ def updateInitValues():
         ui.lineEdit_SetupAcquisitionRate.setText(settings.value('sampleRate'))
         ui.textEdit_SetupComments.setText(settings.value('setupComments'))
     except:
-        errorLog.writeErrorLog("Erro ao carregar configs")
-
+        errorLog.writeLog("Erro ao carregar configs")
+    try:
+        for key in program.data.alarms:
+            if settings.contains('alarm'+key):
+                store = settings.value('alarm'+key)
+                store[0] = float(store[0])
+                program.data.alarms[key] = store
+    except:
+        errorLog.writeLog("Erro ao carregar config de alarme")
 
 # Atualiza portas seriais disponiveis
 def updatePorts():
@@ -107,9 +113,8 @@ def startProgram():
         porta.port = str(ui.comboBox_SerialPorts.currentText())
         porta.timeout = None
         porta.open()
-        # Inicializa programa
-        program.data.wheelPosMax = ui.spinBox_WheelPosMax.value()
-        program.data.wheelPosMin = ui.spinBox_WheelPosMin.value()
+
+        # Inicializa programa e coloca constantes
         program.stop = 0
         program.lapTimeFile.startDataSave("tempos_de_volta")
         program.program()
@@ -119,8 +124,8 @@ def startProgram():
 # O erro de porta serial é analisado pela exceção serial.SerialException. Esse erro é tratado pausando o programa e
 # utilizando uma caixa de diálogo, a qual informa ao usuário o erro encontrado
     except serial.serialutil.SerialException:
-        errorLog.writeErrorLog("startProgram: SerialException")
-        stopProgram()
+        errorLog.writeLog("startProgram: SerialException")
+        program.stopProgram()
         dlg = QMessageBox(None)
         dlg.setWindowTitle("Error!")
         dlg.setIcon(QMessageBox.Warning)
@@ -147,10 +152,11 @@ def readAll(bufferSize, firstByteValues):
                 read_buffer += a
                 break
             else:
-                errorLog.writeErrorLog("Leitura: segundo byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se 5")
+                errorLog.writeLog("Leitura: segundo byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se 5")
         # Se o byte lido nao for 1, 2 3 ou 4,, quer dizer que perdeu algum dado.
         else:
-            errorLog.writeErrorLog("Leitura: primeiro byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se de 1 a 4")
+            errorLog.writeLog("Leitura: primeiro byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se de 1 a 4")
+
     while True:
         # Le resto do buffer
         index = int.from_bytes(firstByte, byteorder='big') - 1
@@ -163,10 +169,10 @@ def readAll(bufferSize, firstByteValues):
                 if int(read_buffer[bufferSize[index]-1]) == 10:
                     break
                 else:
-                    errorLog.writeErrorLog("Leitura: ultimo dado diferente de byte 10")
+                    errorLog.writeLog("Leitura: ultimo dado diferente de byte 10" +  str(read_buffer))
                     return []
             else:
-                errorLog.writeErrorLog("Leitura: penultimo dado diferente de byte 9")
+                errorLog.writeLog("Leitura: penultimo dado diferente de byte 9")
                 return []
 
     return read_buffer
@@ -178,15 +184,24 @@ class Program():
         ui.pushButton_SaveFile.clicked.connect(self.beginDataSave)  # botão para iniciar gravação de dados no txt
         ui.pushButton_StopSaveFile.clicked.connect(self.stopDataFileSave)  # botão para parar a gravação de dados txt
         ui.pushButton_PauseProgram.clicked.connect(self.stopProgram)  # botão para pausar o programa
+        ui.restoreDefaultAlarmPushButton.clicked.connect(self.setDefaultAlarms)
+        ui.lineEdit_WheelPosMin.editingFinished.connect(self.updateConstants)
+        ui.lineEdit_WheelPosMax.editingFinished.connect(self.updateConstants)
+
         self.updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
 
         self.data = Data()
         self.dataFile = File()
         self.lapTimeFile = File()
-        self.lastBuffers = np.array(['', '', '', '', '', ''], dtype=object)
+        #self.lastBuffers = np.array(['', '', '', '', '', ''], dtype=object)
+        self.lastBuffers = Log(ui.textBrowser_Buffer, maxElements=6)
         # Dicionario de funcoes: permite chamar funcoes fazendo updateInterfaceFunctions[key], onde key é 1,2,3 ou 4
         self.updateInterfaceFunctions = {1: updateP1Interface, 2: updateP2Interface, 3: updateP3Interface, 4: updateP4Interface}
         self.stop = 1
+        self.updateConstants()
+
+        self.packIndexes = [1, 2, 3, 4]
+        self.packSizes = self.data.pSizes
 
     def stopProgram(self):
         self.stop = 1  # atualiza o valor da variavel stop, a qual é usada para verificar o funcionamento da interface
@@ -205,9 +220,8 @@ class Program():
         if (self.stop == 0):
             sec = time()
             # Le dados da porta serial
-            packIndexes = [1, 2, 3, 4]
-            packSizes = [16, 22, 15, 30]
-            self.buffer = readAll(packSizes, packIndexes)
+
+            self.buffer = readAll(self.packSizes, self.packIndexes)
 
             if len(self.buffer) != 0:
                 # chamada da função updateLabel para analisar os dados recebidos atualizar os mostradores da interface
@@ -236,8 +250,8 @@ class Program():
         self.dataFile.writeRow("DIFERENCIAL: " +str(ui.lineEdit_SetupDifferential.text()) + "\n")
         self.dataFile.writeRow("TAXA DE AQUISICAO: " +str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")
         self.dataFile.writeRow("COMENTARIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
-        self.dataFile.writeRow("POSICAO MAXIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMax.value()) + "\n")
-        self.dataFile.writeRow("POSICAO MINIMA DO VOLANTE: " +str(ui.spinBox_WheelPosMin.value()) + "\n")
+        self.dataFile.writeRow("POSICAO MAXIMA DO VOLANTE: " +str(ui.lineEdit_WheelPosMax.text()) + "\n")
+        self.dataFile.writeRow("POSICAO MINIMA DO VOLANTE: " +str(ui.lineEdit_WheelPosMin.text()) + "\n")
         self.dataFile.writeRow("SUSPENSAO: " +str(ui.lineEdit_CalibrationConstant.text()) + "\n")
         self.dataFile.writeRow("PACOTE1 40 " + vectorToString(self.data.p1Order, ' '))
         self.dataFile.writeRow("PACOTE2 20 " + vectorToString(self.data.p2Order, ' '))
@@ -260,7 +274,7 @@ class Program():
         packID = buffer[0]
         # Atualiza dados em Data e atualiza campos respectivos na interface
         if (self.data.updateDataFunctions[packID](buffer) == 0):
-            errorLog.writeErrorLog(" updateData: Pacote " + str(packID) + "com tamanho diferente do configurado")
+            errorLog.writeLog(" updateData: Pacote " + str(packID) + "com tamanho diferente do configurado")
         self.updateInterfaceFunctions[packID](self.data)
 
         # Grava linha buffer no arquivo
@@ -272,10 +286,11 @@ class Program():
         updatePlot(self.data)
 
         # Atualiza o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
-        string = vectorToString(self.lastBuffers, '\n')
-        self.lastBuffers = np.roll(self.lastBuffers, 1)
-        self.lastBuffers[0] = vectorToString(buffer, ' ')
-        ui.textBrowser_Buffer.setText(string)
+        #string = vectorToString(self.lastBuffers, '\n')
+        #self.lastBuffers = np.roll(self.lastBuffers, 1)
+        #self.lastBuffers[0] = vectorToString(buffer, ' ')
+        #ui.textBrowser_Buffer.setText(string)
+        self.lastBuffers.writeLog(vectorToString(buffer, ' ', addNewLine=False))
 
         if (self.stop == 0):
             # As seguintes linhas contam o tempo de uma execução do programa e quantas execuções foram realizadas
@@ -289,6 +304,16 @@ class Program():
                 print("tempo médio:", exe_time / cont)
                 print("qtd de execuções", cont)
 
+    def updateConstants(self):
+        self.data.wheelPosMax = int(ui.lineEdit_WheelPosMax.text())
+        self.data.wheelPosMin = int(ui.lineEdit_WheelPosMin.text())
+
+    def setDefaultAlarms(self):
+        global settings
+        self.data.setDefaultAlarms()
+        for key in self.data.alarms:
+            if settings.contains('alarm'+key):
+                settings.remove('alarm'+key)
 
 def updatePlot(data):
     # as linhas a seguir plotam os gráficos selecionados atráves dos checkBox e define as cores de cada gráfico.
@@ -307,6 +332,35 @@ def updatePlot(data):
     if ui.checkBox_OilPressure.isChecked() == 1:
         ui.graphicsView_EngineData.plot(data.arrayTime2, data.arrayOilP, pen='k')
 
+
+# Coloca o background da linha da lista na cor color, onde color e do tipo QtGui.QColor(r, g, b)
+def setFieldBackground(tableWidget, color, i):
+    for j in range(0, 3):
+        item = tableWidget.item(i, j)
+        item.setBackground(color)
+
+
+# Confere se alarme deve ser ativado e colore bacgrond caso seja o caso
+def checkAlarm(data, key, tableWidget, i):
+    op = data.alarms[key][1]
+    threshold = data.alarms[key][0]
+    if op == 'greater then':
+        if data.dic[key] > threshold:
+            setFieldBackground(tableWidget, QtGui.QColor(255, 0, 0), i)
+        else:
+            setFieldBackground(tableWidget, QtGui.QColor(255, 255, 255), i)
+    elif op == 'lesser then':
+        if data.dic[key] < threshold:
+            setFieldBackground(tableWidget, QtGui.QColor(255, 0, 0), i)
+        else:
+            setFieldBackground(tableWidget, QtGui.QColor(255, 255, 255), i)
+    elif op == 'equals':
+        if data.dic[key] == threshold:
+            setFieldBackground(tableWidget, QtGui.QColor(255, 0, 0), i)
+        else:
+            setFieldBackground(tableWidget, QtGui.QColor(255, 255, 255), i)
+
+
 # Função que atualiza os mostradores relacionados aos dados do pacote 1
 # Pacote 1: X_Accelerometer, Y_Accelerometer, Z_Accelerometer, Sparcut Relay, Speed, Suspension Course, time
 # Para atualizar as células da tabela tableWidget_Package1 é necessário definir o valor da variável item como o
@@ -321,6 +375,11 @@ def updateP1Interface(data):
         item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package1.setItem(i, 1, item)
+        # Alarmes
+        if data.alarms[key] != []:
+            checkAlarm(data, key, ui.tableWidget_Package1, i)
+        else:
+            setFieldBackground(ui.tableWidget_Package1, QtGui.QColor(255, 255, 255), i)
 
     # print(data.dic['acelX'])
     if (int(data.dic['sparkCut']) == 1):
@@ -346,6 +405,11 @@ def updateP2Interface(data):
         item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package2.setItem(i, 1, item)
+
+        if data.alarms[key] != []:
+            checkAlarm(data, key, ui.tableWidget_Package2, i)
+        else:
+            setFieldBackground(ui.tableWidget_Package2, QtGui.QColor(255, 255, 255), i)
 
     if ((data.dic['rearBrakeP'] + data.dic['frontBrakeP']) != 0):  # Verificação necessária para que não ocorra divisão por zero
         ui.progressBar_FrontBreakBalance.setValue(100 * data.dic['frontBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP']))  # porcentagem da pressão referente ao freio dianteiro
@@ -380,12 +444,17 @@ def updateP3Interface(data):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package3.setItem(i, 1, item)
 
+        if data.alarms[key] != []:
+            checkAlarm(data, key, ui.tableWidget_Package3, i)
+        else:
+            setFieldBackground(ui.tableWidget_Package3, QtGui.QColor(255, 255, 255), i)
+
     # Gauge da bateria
     ui.progressBar_BatteryVoltage.setValue(int(data.dic['batVoltage']))
     ui.label_15.setText(str(data.dic['batVoltage']))
 
   # alarme bateria: o fundo da linha da tabela referente à tensão na bateria recebe a cor vermelha
-    if (data.dic['batVoltage'] <= 11.5):
+    """if (data.dic['batVoltage'] <= 11.5):
         item = ui.tableWidget_Package3.item(0, 0)
         item.setBackground(QtGui.QColor(255, 0, 0))
         item = ui.tableWidget_Package3.item(0, 2)
@@ -398,13 +467,13 @@ def updateP3Interface(data):
         item = ui.tableWidget_Package3.item(0, 2)
         item.setBackground(QtGui.QColor(255, 255, 255))
         item = ui.tableWidget_Package3.item(0, 1)
-        item.setBackground(QtGui.QColor(255, 255, 255))
+        item.setBackground(QtGui.QColor(255, 255, 255))"""
 
     ui.progressBar_EngineTemperature.setValue(data.dic['ect'])
     ui.label_6.setText(str(data.dic['ect']))
 
     # alarme temperatura: o fundo da linha da tabela referente à temperatura do motor recebe a cor vermelha
-    if (data.dic['ect'] >= 95.0):
+    """if (data.dic['ect'] >= 95.0):
         item = ui.tableWidget_Package3.item(3, 0)
         item.setBackground(QtGui.QColor(255, 0, 0))
         item = ui.tableWidget_Package3.item(3, 2)
@@ -417,7 +486,7 @@ def updateP3Interface(data):
         item = ui.tableWidget_Package3.item(3, 2)
         item.setBackground(QtGui.QColor(255, 255, 255))
         item = ui.tableWidget_Package3.item(3, 1)
-        item.setBackground(QtGui.QColor(255, 255, 255))
+        item.setBackground(QtGui.QColor(255, 255, 255))"""
 
     if (int(data.dic['releVent']) == 1):
         ui.radioButton_FanRelay.setChecked(False)
@@ -445,12 +514,39 @@ def updateP4Interface(data):
     ui.tableWidget_Package3.setItem(i+1, 1, item)
 
 
+def saveAlarm():
+    global settings
+    key = ui.alarmComboBox.currentText()
+    type = ui.alarmTypeComboBox.currentText()
+    val = ui.alarmlineEdit.text()
+    if val == '' or type == '':
+        if settings.contains('alarm'+key):
+            settings.remove('alarm'+key)
+        program.data.alarms[key] = []
+    else:
+        store = [float(val), type]
+        settings.setValue('alarm' + key, store)
+        program.data.alarms[key] = store
+
+
+def displayAlarm(types):
+    text = ui.alarmComboBox.currentText()
+    val = program.data.alarms[text]
+    if val != []:
+        index = types.index(val[1])
+        ui.alarmlineEdit.setText(str(val[0]))
+        ui.alarmTypeComboBox.setCurrentIndex(index)
+    else:
+        ui.alarmlineEdit.setText('')
+        ui.alarmTypeComboBox.setCurrentIndex(0)
+
+
 # função para atualizar o arquivo setup com novos valores
 def updateSetup():
 
     global settings, errorLog
-    settings.setValue('wheelPosMax',str(ui.spinBox_WheelPosMax.value()))
-    settings.setValue('wheelPosMin',str(ui.spinBox_WheelPosMin.value()))
+    settings.setValue('wheelPosMax',str(ui.lineEdit_WheelPosMax.text()))
+    settings.setValue('wheelPosMin',str(ui.lineEdit_WheelPosMin.text()))
     settings.setValue('calibConstant',str(ui.lineEdit_CalibrationConstant.text()))
     settings.setValue('setupCar',str(ui.lineEdit_SetupCar.text()))
     settings.setValue('setupTrack' ,str(ui.lineEdit_SetupTrack.text()))
@@ -466,6 +562,7 @@ def updateSetup():
     settings.setValue('sampleRate' ,str(ui.lineEdit_SetupAcquisitionRate.text()))
     settings.setValue('setupComments' ,str(ui.textEdit_SetupComments.toPlainText()))
     settings.setValue('filename', ui.lineEdit_FileName.text())
+
 
 # Abre dialogo para escolher arquivo
 def selectFile():
@@ -491,7 +588,7 @@ ui = Ui_MainWindow()
 ui.setupUi(MainWindow)
 
 # Classes globais
-errorLog = ErrorLog(ui.errorLog)
+errorLog = Log(ui.errorLog)
 program = Program()
 
 # ações
@@ -500,6 +597,7 @@ ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
 ui.pushButton_StartProgram.clicked.connect(startProgram)  # botão para iniciar o programa
 ui.pushButton_UpdatePorts.clicked.connect(updatePorts)  # botão para atualizar as portas seriis disponíveis
 ui.pushButton_SaveSetupValues.clicked.connect(updateSetup)  # botão para atualizar os dados de setup no arquivo txt
+ui.saveAlarmPushButton.clicked.connect(saveAlarm)
 ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interface
 ui.comboBox_SerialPorts.addItems(serialPorts())  # mostra as portas seriais disponíveis
 ui.comboBox_Baudrate.addItems(["115200", "38400", "1200", "2400", "9600", "19200", "57600" ])  # mostra os baudrates disponíveis
@@ -516,6 +614,11 @@ ui.checkBox_OilPressure.setStyleSheet('color:blue')
 ui.checkBox_FuelPressure.setStyleSheet('color:green')
 ui.checkBox_EngineTemperature.setStyleSheet('color:red')
 ui.checkBox_OilPressure.setStyleSheet('color:black')
+
+ui.alarmComboBox.addItems(program.data.alarms)
+alarmTypes = ['', 'greater then', 'lesser then', 'equal to']
+ui.alarmComboBox.activated.connect(lambda: displayAlarm(alarmTypes))
+ui.alarmTypeComboBox.addItems(alarmTypes)
 
 # Mostra a janela e fecha o programa quando ela é fechada (?)
 MainWindow.show()

@@ -97,3 +97,7 @@ class App(QWidget):
     j.dic['p1'][0] = 26
 
     print(j.test, j.dic, j.dic['p1'], j.dic2['p1'])
+
+    k = [1,2,3,4,5,6]
+    k = k[-1:] + k[:5]
+    print(k[:-1], k)

@@ -3,16 +3,15 @@ import copy
 from datetime import datetime
 
 
+# Data armazena os dados atuais
 class Data:
-    windowUi = []
-
     def __init__(self):
+        # Constantes
         self.wheelPosMax = 0
         self.wheelPosMin = 0
-        self.p1Size = 16
-        self.p2Size = 22
-        self.p3Size = 15
-        self.p4Size = 30
+        self.pSizes = [16, 22, 16, 30]
+
+        # Dados
         self.p1Order = ['acelX', 'acelY', 'acelZ', 'velDD', 'velT', 'sparkCut', 'suspPos', 'time']
         self.p2Order = ['oleoP', 'fuelP', 'tps', 'rearBrakeP', 'frontBrakeP', 'volPos', 'beacon', 'correnteBat', 'rpm', 'time2']
         self.p3Order = ['ect', 'batVoltage', 'releBomba', 'releVent', 'pduTemp', 'tempDiscoD', 'tempDiscoE', 'time3']
@@ -51,12 +50,21 @@ class Data:
         }
 
         self.dicRaw = copy.deepcopy(self.dic)
+        self.alarms = copy.deepcopy(self.dic)
+        # Configura alarmes padrao
+        self.setDefaultAlarms()
         self.arrayTemp = np.zeros(50)
         self.arrayFuelP = np.zeros(50)
         self.arrayOilP = np.zeros(50)
         self.arrayBattery = np.zeros(50)
         self.arrayTime2 = np.zeros(50)
         self.arrayTime3 = np.zeros(50)
+
+    def setDefaultAlarms(self):
+        for key in self.alarms:
+            self.alarms[key] = []
+        self.alarms['batVoltage'] = [11.5, 'lesser then']
+        self.alarms['ect'] = [95, 'greater then']
 
     # Caso valor seja signed, é necessario trata-lo como complemento de 2
     def twosComp(self, number, bits):
@@ -66,7 +74,7 @@ class Data:
 
     def updateP1Data(self, buffer):
         # recebe o valor contido na lista de dados(leitura) em suas respectivas posições e realiza as operações de deslocamento e soma binária
-        if ((int(buffer[0]) == 1) and (len(buffer) == self.p1Size)):  # testa se é o pacote 1 e está completo
+        if ((int(buffer[0]) == 1) and (len(buffer) == self.pSizes[0])):  # testa se é o pacote 1 e está completo
             self.dicRaw['acelX'] = (int(buffer[2]) << 8) + int(buffer[3])
             self.dicRaw['acelX'] = self.twosComp(self.dicRaw['acelX'], 16)
             self.dic['acelX'] = round(float(self.dicRaw['acelX'] / 16384), 3)
@@ -94,7 +102,7 @@ class Data:
             return 0
 
     def updateP2Data(self, buffer):
-        if ((int(buffer[0]) == 2) and (len(buffer) == self.p2Size)):  # testa se é o pacote 2 e está completo
+        if ((int(buffer[0]) == 2) and (len(buffer) == self.pSizes[1])):  # testa se é o pacote 2 e está completo
             self.dicRaw['oleoP'] = (int(buffer[2]) << 8) + int(buffer[3])
             self.dic['oleoP'] = round(float(self.dicRaw['oleoP'] * 0.001), 4)
             self.dicRaw['fuelP'] = (int(buffer[4]) << 8) + int(buffer[5])
@@ -121,30 +129,30 @@ class Data:
             return 0
 
     def updateP3Data(self, buffer):
-        if ((int(buffer[0]) == 3) and (len(buffer) == self.p3Size)):  # testa se é o pacote 3 e está completo
+        if ((int(buffer[0]) == 3) and (len(buffer) == self.pSizes[2])):  # testa se é o pacote 3 e está completo
 
-            self.dicRaw['ect'] = (buffer[3] << 8) + buffer[4]
+            self.dicRaw['ect'] = (buffer[2] << 8) + buffer[3]
             self.dic['ect'] = round(float(self.dicRaw['ect'] * 0.1), 2)
-            self.dicRaw['batVoltage'] = (buffer[5] << 8) + (buffer[6])
+            self.dicRaw['batVoltage'] = (buffer[4] << 8) + (buffer[5])
             self.dic['batVoltage'] = round(float(self.dicRaw['batVoltage'] * 0.01), 2)
-            self.dicRaw['releBomba'] = int((buffer[7] & 128) >> 7)
+            self.dicRaw['releBomba'] = int((buffer[6] & 128) >> 7)
             self.dic['releBomba'] = self.dicRaw['releBomba']
-            self.dicRaw['releVent'] = int((buffer[7] & 32) >> 5)
+            self.dicRaw['releVent'] = int((buffer[6] & 32) >> 5)
             self.dic['releVent'] = self.dicRaw['releVent']
-            self.dicRaw['pduTemp'] = (buffer[8] << 8) + buffer[8]
+            self.dicRaw['pduTemp'] = (buffer[7] << 8) + buffer[7]
             self.dic['pduTemp'] = round(float(self.dicRaw['pduTemp']), 2)
-            self.dicRaw['tempDiscoE'] = (buffer[9] << 8) + buffer[10]
+            self.dicRaw['tempDiscoE'] = (buffer[8] << 8) + buffer[9]
             self.dic['tempDiscoE'] = round(float(self.dicRaw['tempDiscoE']), 2)
-            self.dicRaw['tempDiscoD'] = (buffer[11] << 8) + buffer[12]
+            self.dicRaw['tempDiscoD'] = (buffer[10] << 8) + buffer[11]
             self.dic['tempDiscoD'] = round(float(self.dicRaw['tempDiscoD']), 2)
-            self.dicRaw['time3'] = (buffer[13] << 8) + buffer[14]
+            self.dicRaw['time3'] = (buffer[12] << 8) + buffer[13]
             self.dic['time3'] = 25 * self.dicRaw['time3']
             return 1
         else:
             return 0
 
     def updateP4Data(self, buffer):
-        if ((int(buffer[0]) == 4) and (len(buffer) == self.p4Size)):  # testa se é o pacote 3 e está completo
+        if ((int(buffer[0]) == 4) and (len(buffer) == self.pSizes[3])):  # testa se é o pacote 3 e está completo
             for i in range(0, 8):
                 j = 2 + 3*i
                 self.dicRaw['ext'][i] = (buffer[j] << 16) + (buffer[j+1] << 8) + buffer[j+2]
@@ -188,6 +196,7 @@ class Data:
         return string
 
 
+# Classe armazena um arquivo
 class File:
     def __init__(self):
         self.save = 0
@@ -211,17 +220,26 @@ class File:
             self.arq.close()
 
 
-class ErrorLog():
-    def __init__(self, logInstance):
-        self.errorLog = []
+# Escrve mensagens de erro na instancia logInstance.
+# Nesse caso, logInstance é um campo da interface. Pode ser qualquer campo que aceite a
+# Funcao setText
+class Log():
+    def __init__(self, logInstance, maxElements=200):
+        self.Log = []
         self.logInstance = logInstance
+        self.maxElements = maxElements
 
     # Insere novo texto de erro na primeira posicao do vetor
-    def writeErrorLog(self, text):
-        self.errorLog.append(" ")
-        self.errorLog = self.errorLog[-1:] + self.errorLog[:-1]
-        self.errorLog[0] = text
-        string = '\n'.join(str(x) for x in self.errorLog)
-        string = string + '\n'
+    def writeLog(self, text):
+        self.Log.append(" ")
+        # Faz o roll
+        if len(self.Log) < self.maxElements:
+            self.Log = self.Log[-1:] + self.Log[:-1]
+            self.Log[0] = text
+        else:
+            self.Log = self.Log[-1:] + self.Log[:self.maxElements-1]
+            self.Log[0] = text
+        string = '\n'.join(str(x) for x in self.Log)
+        #string = string + '\n'
         self.logInstance.setText(string)
-        print(text)
+        # print(text)
