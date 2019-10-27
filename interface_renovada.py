@@ -204,6 +204,7 @@ class Program():
         self.packSizes = self.data.pSizes
 
     def stopProgram(self):
+        self.updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
         self.stop = 1  # atualiza o valor da variavel stop, a qual é usada para verificar o funcionamento da interface
         self.lapTimeFile.stopDataSave()
         # Fecha arquivo file e porta serial
@@ -286,10 +287,6 @@ class Program():
         updatePlot(self.data)
 
         # Atualiza o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
-        #string = vectorToString(self.lastBuffers, '\n')
-        #self.lastBuffers = np.roll(self.lastBuffers, 1)
-        #self.lastBuffers[0] = vectorToString(buffer, ' ')
-        #ui.textBrowser_Buffer.setText(string)
         self.lastBuffers.writeLog(vectorToString(buffer, ' ', addNewLine=False))
 
         if (self.stop == 0):
