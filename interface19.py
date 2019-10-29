@@ -3,38 +3,18 @@ from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
 # pacotes necessários
 import sys
-from time import time
 import glob
 import numpy as np
 
 import serial
-from classes import Data, File, Log
+from classes import Data, File, Log, vectorToString
+from Program import Program
 from interface_generated import Ui_MainWindow
 
-# settings armazena os campos de configuracao na interface
-settings = QtCore.QSettings('test', 'interface_renovada')
-array_lap = np.array([]).astype('int')
-aux_time = np.array([0]).astype('int')
-# Vetores para mostrar últimos dados recebidos (TEMPORARIO)
 
-sec = 0
-cont = 0
-exe_time = 0
-
-porta = serial.Serial()
-
-
-# Concatena vetor em uma string separada por delimiter
-def vectorToString(line, delimiter, addNewLine=True):
-    string = delimiter.join(str(x) for x in line)
-    if addNewLine:
-        string = string + '\n'
-    return string
-
-
-# A função updateInitValues atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
+# A função loadSetup atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
 # Ela serve para que não seja necessário atualizar todos os campos sempre que for necessária o reinício da interface
-def updateInitValues():
+def loadSetup():
     global settings, errorLog
     try:
         filename = settings.value('filename')
@@ -57,8 +37,12 @@ def updateInitValues():
         ui.lineEdit_SetupEngineMap.setText(settings.value('engineMap'))
         ui.lineEdit_SetupBalanceBar.setText(settings.value('balanceBar'))
         ui.lineEdit_SetupDifferential.setText(settings.value('setupDrexler'))
-        ui.lineEdit_SetupAcquisitionRate.setText(settings.value('sampleRate'))
         ui.textEdit_SetupComments.setText(settings.value('setupComments'))
+        ui.lineEdit_SampleRate1.setText(settings.value('sampleRate1'))
+        ui.lineEdit_SampleRate2.setText(settings.value('sampleRate2'))
+        ui.lineEdit_SampleRate3.setText(settings.value('sampleRate3'))
+        ui.lineEdit_SampleRate4.setText(settings.value('sampleRate4'))
+
     except:
         errorLog.writeLog("Erro ao carregar configs")
     try:
@@ -70,14 +54,15 @@ def updateInitValues():
     except:
         errorLog.writeLog("Erro ao carregar config de alarme")
 
+
 # Atualiza portas seriais disponiveis
 def updatePorts():
     ui.comboBox_SerialPorts.clear()
-    ui.comboBox_SerialPorts.addItems(serialPorts())
+    ui.comboBox_SerialPorts.addItems(listSerialPorts())
 
 
 # Lista as portas seriais disponiveis. Retorna uma lista com os nomes das portas
-def serialPorts():
+def listSerialPorts():
     """ Lists serial port names
         :raises EnvironmentError:
             On unsupported or unknown platforms
@@ -109,14 +94,16 @@ def startProgram():
     try:
         global errorLog, program
         # abre e configura a porta serial utilizando os valores definidos pelo usuário através da interface
-        porta.baudrate = int(ui.comboBox_Baudrate.currentText())
-        porta.port = str(ui.comboBox_SerialPorts.currentText())
-        porta.timeout = None
-        porta.open()
+        baudrate = int(ui.comboBox_Baudrate.currentText())
+        port = str(ui.comboBox_SerialPorts.currentText())
+        timeout = None
+        program.openSerialPort(port, baudrate, timeout)
 
         # Inicializa programa e coloca constantes
+        updateConstants()
         program.stop = 0
-        program.lapTimeFile.startDataSave("tempos_de_volta")
+        # program.lapTimeFile.startDataSave("tempos_de_volta")
+        program.updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
         program.program()
 
         print("Saiu do programa")
@@ -134,189 +121,61 @@ def startProgram():
         dlg.exec_()
 
 
-# Le buffer da porta serial. bufferSize é uma lista com os tamanhos dos pacotes e firstByteValues
-# é uma lista com os numeros dos pacotes (1,2,3,4)
-def readAll(bufferSize, firstByteValues):
-    while True:
-        # Espera receber algo na porta serial
-        while (porta.inWaiting() == 0):
-            pass
-        read_buffer = b''
-        # Le primeiro e segundo bytes
-        firstByte = porta.read()
-        if int.from_bytes(firstByte, byteorder='big') in firstByteValues:
-            read_buffer += firstByte
-            # Le o segundo byte de inicio
-            a = porta.read()
-            if int.from_bytes(a, byteorder='big') == 5:
-                read_buffer += a
-                break
-            else:
-                errorLog.writeLog("Leitura: segundo byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se 5")
-        # Se o byte lido nao for 1, 2 3 ou 4,, quer dizer que perdeu algum dado.
-        else:
-            errorLog.writeLog("Leitura: primeiro byte com valor inesperado. Leu-se " + str(firstByte) + ", esperava-se de 1 a 4")
-
-    while True:
-        # Le resto do buffer
-        index = int.from_bytes(firstByte, byteorder='big') - 1
-        byte = porta.read(size=int(bufferSize[index] - 2))
-        read_buffer += byte
-
-        if(len(read_buffer) == bufferSize[index]):
-            if int(read_buffer[bufferSize[index]-2]) == 9:
-                # Chegou no fim do pacote
-                if int(read_buffer[bufferSize[index]-1]) == 10:
-                    break
-                else:
-                    errorLog.writeLog("Leitura: ultimo dado diferente de byte 10" +  str(read_buffer))
-                    return []
-            else:
-                errorLog.writeLog("Leitura: penultimo dado diferente de byte 9")
-                return []
-
-    return read_buffer
+# Atualiza constantes com os valores lidos na interface
+def updateConstants():
+    program.data.wheelPosMax = int(ui.lineEdit_WheelPosMax.text())
+    program.data.wheelPosMin = int(ui.lineEdit_WheelPosMin.text())
 
 
-# Função que executa o programa
-class Program():
-    def __init__(self):
-        ui.pushButton_SaveFile.clicked.connect(self.beginDataSave)  # botão para iniciar gravação de dados no txt
-        ui.pushButton_StopSaveFile.clicked.connect(self.stopDataFileSave)  # botão para parar a gravação de dados txt
-        ui.pushButton_PauseProgram.clicked.connect(self.stopProgram)  # botão para pausar o programa
-        ui.restoreDefaultAlarmPushButton.clicked.connect(self.setDefaultAlarms)
-        ui.lineEdit_WheelPosMin.editingFinished.connect(self.updateConstants)
-        ui.lineEdit_WheelPosMax.editingFinished.connect(self.updateConstants)
+# Função para definir nome do arquivo txt no qual os dados serão gravados,
+# abrir este arquivo e gravar dados de setup e os dados recebidos através na porta seria
+def beginDataSave():
+    fileInstance = program.dataFile
+    if fileInstance.save == 1:
+        errorLog.writeLog("Arquivo já inicializado ")
+        return
+    # arquivo e a variável arquivo recebe o nome que o usuário informa na interface do arquivo a ser criado
+    arquivo = ui.lineEdit_FileName.text()
+    fileInstance.startDataSave(arquivo)
+    fileInstance.writeRow("***\n")
+    fileInstance.writeRow("CARRO: " + str(ui.lineEdit_SetupCar.text()) + "\n")
+    fileInstance.writeRow("PISTA: " + str(ui.lineEdit_SetupTrack.text()) + "\n")
+    fileInstance.writeRow("PILOTO: " + str(ui.lineEdit_SetupDriver.text()) + "\n")
+    fileInstance.writeRow("TEMPERATURA AMBIENTE: " + str(ui.lineEdit_SetupTemperature.text()) + "\n")
+    fileInstance.writeRow("ANTIROLL: " +str(ui.lineEdit_SetupAntiroll.text()) + "\n")
+    fileInstance.writeRow("PRESSAO PNEUS DIANTEIROS: " +str(ui.lineEdit_SetupTirePressureFront.text()) + "\n")
+    fileInstance.writeRow("PRESSAO PNEUS TASEIROS: " +str(ui.lineEdit_SetupTirePressureRear.text()) + "\n")
+    fileInstance.writeRow("ANGULO DE ATAQUE DA ASA: " +str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")
+    fileInstance.writeRow("MAPA MOTOR: " +str(ui.lineEdit_SetupEngineMap.text()) + "\n")
+    fileInstance.writeRow("BALANCE BAR: " +str(ui.lineEdit_SetupBalanceBar.text()) + "\n")
+    fileInstance.writeRow("DIFERENCIAL: " +str(ui.lineEdit_SetupDifferential.text()) + "\n")
+    fileInstance.writeRow("TAXA DE AQUISICAO: "  + "\n")
+    fileInstance.writeRow("COMENTARIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
+    fileInstance.writeRow("POSICAO MAXIMA DO VOLANTE: " +str(ui.lineEdit_WheelPosMax.text()) + "\n")
+    fileInstance.writeRow("POSICAO MINIMA DO VOLANTE: " +str(ui.lineEdit_WheelPosMin.text()) + "\n")
+    fileInstance.writeRow("SUSPENSAO: " +str(ui.lineEdit_CalibrationConstant.text()) + "\n")
+    fileInstance.writeRow("PACOTE1 " + ui.lineEdit_SampleRate1.text() + ' ' + vectorToString(program.data.p1Order, ' '))
+    fileInstance.writeRow("PACOTE2 " + ui.lineEdit_SampleRate2.text() + ' ' + vectorToString(program.data.p2Order, ' '))
+    fileInstance.writeRow("PACOTE3 " + ui.lineEdit_SampleRate3.text() + ' ' + vectorToString(program.data.p3Order, ' '))
+    fileInstance.writeRow("PACOTE4 " + ui.lineEdit_SampleRate4.text() + ' ' + vectorToString(program.data.p4Order, ' '))
+    # fileInstance.writeRow("PACOTE1 40 acelY acelX acelZ velDD velT sparkCut suspPos time\n")
+    # fileInstance.writeRow("PACOTE2 20 oleoP fuelP tps rearBrakeP frontBrakeP volPos beacon correnteBat rpm time2\n")
+    # fileInstance.writeRow("PACOTE3 2 ect batVoltage releBomba releVent pduTemp tempDiscoD tempDiscoE time3\n")
+    fileInstance.writeRow("***\n\n")
 
-        self.updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
+    ui.label_12.setText("Saving...")  # informa ao usuário a situação atual de gravação de dados
 
-        self.data = Data()
-        self.dataFile = File()
-        self.lapTimeFile = File()
-        #self.lastBuffers = np.array(['', '', '', '', '', ''], dtype=object)
-        self.lastBuffers = Log(ui.textBrowser_Buffer, maxElements=6)
-        # Dicionario de funcoes: permite chamar funcoes fazendo updateInterfaceFunctions[key], onde key é 1,2,3 ou 4
-        self.updateInterfaceFunctions = {1: updateP1Interface, 2: updateP2Interface, 3: updateP3Interface, 4: updateP4Interface}
-        self.stop = 1
-        self.updateConstants()
 
-        self.packIndexes = [1, 2, 3, 4]
-        self.packSizes = self.data.pSizes
+def stopDataSave():
+    fileInstance = program.dataFile
+    fileInstance.stopDataSave()
+    ui.label_12.setText("Not saving...")  # informa ao usuário a situação atual de gravação de dados
 
-    def stopProgram(self):
-        self.updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
-        self.stop = 1  # atualiza o valor da variavel stop, a qual é usada para verificar o funcionamento da interface
-        self.lapTimeFile.stopDataSave()
-        # Fecha arquivo file e porta serial
-        self.stopDataFileSave()
-        if porta.isOpen():
-            porta.flushInput()
-            porta.close()
-        else:
-            pass
-
-    # program() roda em loop
-    def program(self):
-        global sec
-        if (self.stop == 0):
-            sec = time()
-            # Le dados da porta serial
-
-            self.buffer = readAll(self.packSizes, self.packIndexes)
-
-            if len(self.buffer) != 0:
-                # chamada da função updateLabel para analisar os dados recebidos atualizar os mostradores da interface
-                self.updateLabel(self.buffer)
-
-            # Apos updateTime segundos, chama funcao program() novamente
-            QtCore.QTimer.singleShot(self.updateTime, lambda: self.program())
-
-    # Função para definir nome do arquivo txt no qual os dados serão gravados,
-    # abrir este arquivo e gravar dados de setup e os dados recebidos através na porta seria
-    def beginDataSave(self):
-
-        arquivo = ui.lineEdit_FileName.text()  # variável arquivo recebe o nome que o usuário informa na interface do arquivo a ser criado
-        self.dataFile.startDataSave(arquivo)
-        self.dataFile.writeRow("***\n")
-        self.dataFile.writeRow("CARRO: " + str(ui.lineEdit_SetupCar.text()) + "\n")
-        self.dataFile.writeRow("PISTA: " + str(ui.lineEdit_SetupTrack.text()) + "\n")
-        self.dataFile.writeRow("PILOTO: " + str(ui.lineEdit_SetupDriver.text()) + "\n")
-        self.dataFile.writeRow("TEMPERATURA AMBIENTE: " + str(ui.lineEdit_SetupTemperature.text()) + "\n")
-        self.dataFile.writeRow("ANTIROLL: " +str(ui.lineEdit_SetupAntiroll.text()) + "\n")
-        self.dataFile.writeRow("PRESSAO PNEUS DIANTEIROS: " +str(ui.lineEdit_SetupTirePressureFront.text()) + "\n")
-        self.dataFile.writeRow("PRESSAO PNEUS TASEIROS: " +str(ui.lineEdit_SetupTirePressureRear.text()) + "\n")
-        self.dataFile.writeRow("ANGULO DE ATAQUE DA ASA: " +str(ui.lineEdit_SetupWingAttackAngle.text()) + "\n")
-        self.dataFile.writeRow("MAPA MOTOR: " +str(ui.lineEdit_SetupEngineMap.text()) + "\n")
-        self.dataFile.writeRow("BALANCE BAR: " +str(ui.lineEdit_SetupBalanceBar.text()) + "\n")
-        self.dataFile.writeRow("DIFERENCIAL: " +str(ui.lineEdit_SetupDifferential.text()) + "\n")
-        self.dataFile.writeRow("TAXA DE AQUISICAO: " +str(ui.lineEdit_SetupAcquisitionRate.text()) + "\n")
-        self.dataFile.writeRow("COMENTARIOS: " +str(ui.textEdit_SetupComments.toPlainText()) + "\n")
-        self.dataFile.writeRow("POSICAO MAXIMA DO VOLANTE: " +str(ui.lineEdit_WheelPosMax.text()) + "\n")
-        self.dataFile.writeRow("POSICAO MINIMA DO VOLANTE: " +str(ui.lineEdit_WheelPosMin.text()) + "\n")
-        self.dataFile.writeRow("SUSPENSAO: " +str(ui.lineEdit_CalibrationConstant.text()) + "\n")
-        self.dataFile.writeRow("PACOTE1 40 " + vectorToString(self.data.p1Order, ' '))
-        self.dataFile.writeRow("PACOTE2 20 " + vectorToString(self.data.p2Order, ' '))
-        self.dataFile.writeRow("PACOTE3 2 " + vectorToString(self.data.p3Order, ' '))
-        self.dataFile.writeRow("PACOTE4 20 " + vectorToString(self.data.p4Order, ' '))
-        # self.dataFile.writeRow("PACOTE1 40 acelY acelX acelZ velDD velT sparkCut suspPos time\n")
-        # self.dataFile.writeRow("PACOTE2 20 oleoP fuelP tps rearBrakeP frontBrakeP volPos beacon correnteBat rpm time2\n")
-        # self.dataFile.writeRow("PACOTE3 2 ect batVoltage releBomba releVent pduTemp tempDiscoD tempDiscoE time3\n")
-        self.dataFile.writeRow("***\n\n")
-
-        ui.label_12.setText("Saving...")  # informa ao usuário a situação atual de gravação de dados
-
-    def stopDataFileSave(self):
-        self.dataFile.stopDataSave()
-        ui.label_12.setText("Not saving...")  # informa ao usuário a situação atual de gravação de dados
-
-    def updateLabel(self, buffer):
-        global aux_time, sec, cont, exe_time
-
-        packID = buffer[0]
-        # Atualiza dados em Data e atualiza campos respectivos na interface
-        if (self.data.updateDataFunctions[packID](buffer) == 0):
-            errorLog.writeLog(" updateData: Pacote " + str(packID) + "com tamanho diferente do configurado")
-        self.updateInterfaceFunctions[packID](self.data)
-
-        # Grava linha buffer no arquivo
-        if self.dataFile.save == 1:
-            string = self.data.createPackString(buffer[0])
-            self.dataFile.writeRow(string)
-
-        # Atualiza graficos
-        updatePlot(self.data)
-
-        # Atualiza o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
-        self.lastBuffers.writeLog(vectorToString(buffer, ' ', addNewLine=False))
-
-        if (self.stop == 0):
-            # As seguintes linhas contam o tempo de uma execução do programa e quantas execuções foram realizadas
-            time_init = sec
-            sec = time()
-            milli_sec = (sec - time_init) * 1000  # tempo final - tempo inicial convertido para milissegundos
-            exe_time = exe_time + milli_sec  # tempo total de execução
-            cont = cont + 1  # número de execuções
-            # As linhas a seguir printam no prompt o tempo médio de execução a cada mil execuções até 5000
-            if (cont == 1 or cont == 1000 or cont == 2000 or cont == 3000 or cont == 4000 or cont == 5000):
-                print("tempo médio:", exe_time / cont)
-                print("qtd de execuções", cont)
-
-    def updateConstants(self):
-        self.data.wheelPosMax = int(ui.lineEdit_WheelPosMax.text())
-        self.data.wheelPosMin = int(ui.lineEdit_WheelPosMin.text())
-
-    def setDefaultAlarms(self):
-        global settings
-        self.data.setDefaultAlarms()
-        for key in self.data.alarms:
-            if settings.contains('alarm'+key):
-                settings.remove('alarm'+key)
 
 def updatePlot(data):
     # as linhas a seguir plotam os gráficos selecionados atráves dos checkBox e define as cores de cada gráfico.
     # Os gráficos são compostos pelos últimos 50 pontos do dado
-    # Arrasta vetor pto lado para que novo valor possa ser inserido
-    data.rollArrays()
+    # Arrasta vetor pto lado para que novo valor possa ser inserid
 
     # Atualiza graficos
     ui.graphicsView_EngineData.clear()
@@ -526,9 +385,23 @@ def saveAlarm():
         program.data.alarms[key] = store
 
 
+# Chama funcao que reseta alarms dentro da instancia de Data em program e reseta settings
+def setDefaultAlarms():
+    global settings
+    program.data.setDefaultAlarms()
+    for key in program.data.alarms:
+        if settings.contains('alarm'+key):
+            settings.remove('alarm'+key)
+
+
+# Funcao responsavel por atualizar os campos na parte de configuracao dos alarmes.
+# Ela é chamada qnd o usuario escolhe algum dado no comboBox dos alarmes
 def displayAlarm(types):
+
+    # Pega qual dado esta selecionado no combobox e acessa dicionario de Data
     text = ui.alarmComboBox.currentText()
     val = program.data.alarms[text]
+    # Caso o alarme exista, mostra ele no campo tipo e valor
     if val != []:
         index = types.index(val[1])
         ui.alarmlineEdit.setText(str(val[0]))
@@ -538,9 +411,8 @@ def displayAlarm(types):
         ui.alarmTypeComboBox.setCurrentIndex(0)
 
 
-# função para atualizar o arquivo setup com novos valores
-def updateSetup():
-
+# função para atualizar settings com novos valores de setup
+def saveSetup():
     global settings, errorLog
     settings.setValue('wheelPosMax',str(ui.lineEdit_WheelPosMax.text()))
     settings.setValue('wheelPosMin',str(ui.lineEdit_WheelPosMin.text()))
@@ -556,9 +428,12 @@ def updateSetup():
     settings.setValue('engineMap' ,str(ui.lineEdit_SetupEngineMap.text()))
     settings.setValue('balanceBar' ,str(ui.lineEdit_SetupBalanceBar.text()))
     settings.setValue('setupDrexler' ,str(ui.lineEdit_SetupDifferential.text()))
-    settings.setValue('sampleRate' ,str(ui.lineEdit_SetupAcquisitionRate.text()))
     settings.setValue('setupComments' ,str(ui.textEdit_SetupComments.toPlainText()))
     settings.setValue('filename', ui.lineEdit_FileName.text())
+    settings.setValue('sampleRate1', ui.lineEdit_SampleRate1.text())
+    settings.setValue('sampleRate2', ui.lineEdit_SampleRate2.text())
+    settings.setValue('sampleRate3', ui.lineEdit_SampleRate3.text())
+    settings.setValue('sampleRate4', ui.lineEdit_SampleRate4.text())
 
 
 # Abre dialogo para escolher arquivo
@@ -577,6 +452,9 @@ def exit():
     sys.exit(app.exec_())
 
 
+# settings armazena os campos de configuracao na interface
+settings = QtCore.QSettings('test', 'interface_renovada')
+
 # Roda janela
 app = QtWidgets.QApplication(sys.argv)
 app.setStyle("fusion")
@@ -586,22 +464,36 @@ ui.setupUi(MainWindow)
 
 # Classes globais
 errorLog = Log(ui.errorLog)
-program = Program()
+bufferLog = Log(ui.textBrowser_Buffer, maxElements=6)
+
+# updateInterfaceFunctions é um dicionario que contem algumas funcoes de atualizacao da interface
+# ele é passado como parametro na criacao da classe program, para que essas funcoes possam ser chamadas por ela
+updateInterfaceFunctions = {1: updateP1Interface, 2: updateP2Interface, 3: updateP3Interface, 4: updateP4Interface, 'updatePlot': updatePlot}
+program = Program(ui.doubleSpinBox_UpdateTime.value() * 1000, errorLog, bufferLog, updateInterfaceFunctions)
+updateConstants()
+
+
+ui.pushButton_SaveFile.clicked.connect(beginDataSave)  # botão para iniciar gravação de dados no txt
+ui.pushButton_StopSaveFile.clicked.connect(stopDataSave)  # botão para parar a gravação de dados txt
+ui.pushButton_PauseProgram.clicked.connect(program.stopProgram)  # botão para pausar o programa
+ui.restoreDefaultAlarmPushButton.clicked.connect(setDefaultAlarms)
+ui.lineEdit_WheelPosMin.editingFinished.connect(updateConstants)
+ui.lineEdit_WheelPosMax.editingFinished.connect(updateConstants)
 
 # ações
 ui.pushButtonOpenFile.clicked.connect(selectFile)
 ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
 ui.pushButton_StartProgram.clicked.connect(startProgram)  # botão para iniciar o programa
 ui.pushButton_UpdatePorts.clicked.connect(updatePorts)  # botão para atualizar as portas seriis disponíveis
-ui.pushButton_SaveSetupValues.clicked.connect(updateSetup)  # botão para atualizar os dados de setup no arquivo txt
+ui.pushButton_SaveSetupValues.clicked.connect(saveSetup)  # botão para atualizar os dados de setup no arquivo txt
 ui.saveAlarmPushButton.clicked.connect(saveAlarm)
 ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interface
-ui.comboBox_SerialPorts.addItems(serialPorts())  # mostra as portas seriais disponíveis
+ui.comboBox_SerialPorts.addItems(listSerialPorts())  # mostra as portas seriais disponíveis
 ui.comboBox_Baudrate.addItems(["115200", "38400", "1200", "2400", "9600", "19200", "57600" ])  # mostra os baudrates disponíveis
 #ui.comboBox_Baudrate.currentIndexChanged.connect(selection_baudrate)
 #pixmap = QPixmap("image1.png")
 #ui.label_28.setPixmap(pixmap)
-updateInitValues()  # inicializa os valores de setup de acordo com o arquivo setup
+loadSetup()  # inicializa os valores de setup de acordo com o arquivo setup
 ui.label_12.setText("Not saving...")  # informa na interface que os dados não estão sendo salvos
 ui.graphicsView_DiagramaGG.setXRange(-2, 2)
 ui.graphicsView_DiagramaGG.setYRange(-2, 2)

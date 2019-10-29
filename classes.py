@@ -67,7 +67,7 @@ class Data:
         self.alarms['ect'] = [95, 'greater then']
 
     # Caso valor seja signed, é necessario trata-lo como complemento de 2
-    def twosComp(self, number, bits):
+    def twosComplement(self, number, bits):
         if (number & (1 << (bits - 1))) != 0:
             number = number - (1 << bits)        # compute negative value
         return number
@@ -76,15 +76,15 @@ class Data:
         # recebe o valor contido na lista de dados(leitura) em suas respectivas posições e realiza as operações de deslocamento e soma binária
         if ((int(buffer[0]) == 1) and (len(buffer) == self.pSizes[0])):  # testa se é o pacote 1 e está completo
             self.dicRaw['acelX'] = (int(buffer[2]) << 8) + int(buffer[3])
-            self.dicRaw['acelX'] = self.twosComp(self.dicRaw['acelX'], 16)
+            self.dicRaw['acelX'] = self.twosComplement(self.dicRaw['acelX'], 16)
             self.dic['acelX'] = round(float(self.dicRaw['acelX'] / 16384), 3)
 
             self.dicRaw['acelY'] = (int(buffer[4]) << 8) + int(buffer[5])
-            self.dicRaw['acelY'] = self.twosComp(self.dicRaw['acelY'], 16)
+            self.dicRaw['acelY'] = self.twosComplement(self.dicRaw['acelY'], 16)
             self.dic['acelY'] = round(float(self.dicRaw['acelY'] / 16384), 3)
 
             self.dicRaw['acelZ'] = (int(buffer[6]) << 8) + int(buffer[7])
-            self.dicRaw['acelZ'] = self.twosComp(self.dicRaw['acelZ'], 16)
+            self.dicRaw['acelZ'] = self.twosComplement(self.dicRaw['acelZ'], 16)
             self.dic['acelZ'] = round(float(self.dicRaw['acelZ'] / 16384), 3)
 
             self.dic['velDD'] = int(buffer[8])
@@ -163,6 +163,7 @@ class Data:
         else:
             return 0
 
+    # Arrasta para esquerda uma posicao os dados dos vetores e substitui ultimo valor com o dado mais recente
     def rollArrays(self):
         self.arrayBattery = np.roll(self.arrayBattery, -1)
         self.arrayBattery[-1] = self.dic['batVoltage']
@@ -177,6 +178,7 @@ class Data:
         self.arrayTime3 = np.roll(self.arrayTime3, -1)
         self.arrayTime3[-1] = self.dic['time3']
 
+    # Cria string separada por espaco com os nomes dos dados do pacote X, definidos em pXOrder
     def createPackString(self, packNo):
         if packNo == 1:
             list = self.p1Order
@@ -243,3 +245,11 @@ class Log():
         #string = string + '\n'
         self.logInstance.setText(string)
         # print(text)
+
+
+# Concatena vetor em uma string separada por delimiter
+def vectorToString(line, delimiter, addNewLine=True):
+    string = delimiter.join(str(x) for x in line)
+    if addNewLine:
+        string = string + '\n'
+    return string

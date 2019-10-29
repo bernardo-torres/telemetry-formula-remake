@@ -100,10 +100,10 @@ void loop()
  }
  j++;
  
-if (k%2 == 0){
+if (k%2 == 1){
   Serial.write(buf2, 22);
 }
-if(k == 10){
+if(k == 19){
   Serial.write(buf3, 16);
  k = -1; 
  }
