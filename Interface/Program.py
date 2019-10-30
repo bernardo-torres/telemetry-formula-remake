@@ -1,6 +1,6 @@
 
 import serial
-from classes import Data, File, Log, vectorToString
+from Classes import Data, File, Log, vectorToString
 from PyQt5 import QtCore
 
 

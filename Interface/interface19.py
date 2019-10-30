@@ -7,7 +7,7 @@ import glob
 import numpy as np
 
 import serial
-from classes import Data, File, Log, vectorToString
+from Classes import Data, File, Log, vectorToString
 from Program import Program
 from interface_generated import Ui_MainWindow
 
