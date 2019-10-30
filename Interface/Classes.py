@@ -63,8 +63,8 @@ class Data:
     def setDefaultAlarms(self):
         for key in self.alarms:
             self.alarms[key] = []
-        self.alarms['batVoltage'] = [11.5, 'lesser then']
-        self.alarms['ect'] = [95, 'greater then']
+        self.alarms['batVoltage'] = [11.5, 'lesser than']
+        self.alarms['ect'] = [95, 'greater than']
 
     # Caso valor seja signed, é necessario trata-lo como complemento de 2
     def twosComplement(self, number, bits):
@@ -222,7 +222,7 @@ class File:
             self.arq.close()
 
 
-# Escrve mensagens de erro na instancia logInstance.
+# Escrve mensagens na instancia logInstance.
 # Nesse caso, logInstance é um campo da interface. Pode ser qualquer campo que aceite a
 # Funcao setText
 class Log():

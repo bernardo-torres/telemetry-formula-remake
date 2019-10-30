@@ -505,7 +505,7 @@ ui.checkBox_EngineTemperature.setStyleSheet('color:red')
 ui.checkBox_OilPressure.setStyleSheet('color:black')
 
 ui.alarmComboBox.addItems(program.data.alarms)
-alarmTypes = ['', 'greater then', 'lesser then', 'equal to']
+alarmTypes = ['', 'greater than', 'lesser than', 'equal to']
 ui.alarmComboBox.activated.connect(lambda: displayAlarm(alarmTypes))
 ui.alarmTypeComboBox.addItems(alarmTypes)
 
