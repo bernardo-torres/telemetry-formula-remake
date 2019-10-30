@@ -12,7 +12,7 @@ O pyqt5-tools instala também o Qt Designer, ferramenta utilizada para criar o v
 
 # Modificando a interface
 
-Para modificar algo na interface, altere o arquivo interface.ui, salve, e esecute o seguinte comando:
+Para modificar algo na interface, altere o arquivo interface.ui, salve, e execute o seguinte comando:
 
 pyuic5 -x interface.ui -o interface_generated.py
 
