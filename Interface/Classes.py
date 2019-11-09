@@ -42,11 +42,18 @@ class Data:
             'pduTemp': 0,
             'tempDiscoD': 0,
             'tempDiscoE': 0,
-            'ext': np.zeros(8),
             'time': 0,
             'time2': 0,
             'time3': 0,
             'time4': 0,
+            'ext1': 0,
+            'ext2': 0,
+            'ext3': 0,
+            'ext4': 0,
+            'ext5': 0,
+            'ext6': 0,
+            'ext7': 0,
+            'ext8': 0,
         }
 
         self.dicRaw = copy.deepcopy(self.dic)
@@ -153,10 +160,11 @@ class Data:
 
     def updateP4Data(self, buffer):
         if ((int(buffer[0]) == 4) and (len(buffer) == self.pSizes[3])):  # testa se é o pacote 3 e está completo
-            for i in range(0, 8):
+            for i in range(0, len(self.p4Order) -1):
                 j = 2 + 3*i
-                self.dicRaw['ext'][i] = (buffer[j] << 16) + (buffer[j+1] << 8) + buffer[j+2]
-                self.dic['ext'][i] = self.dicRaw['ext'][i]
+                key = self.p4Order[i]
+                self.dicRaw[key] = (buffer[j] << 16) + (buffer[j+1] << 8) + buffer[j+2]
+                self.dic[key] = self.dicRaw[key]
             self.dicRaw['time4'] = (buffer[26] << 8) + (buffer[27])
             self.dic['time4'] = 25 * self.dicRaw['time4']
             return 1

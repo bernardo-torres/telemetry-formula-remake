@@ -200,12 +200,12 @@ def setFieldBackground(tableWidget, color, i):
 def checkAlarm(data, key, tableWidget, i):
     op = data.alarms[key][1]
     threshold = data.alarms[key][0]
-    if op == 'greater then':
+    if op == 'greater than':
         if data.dic[key] > threshold:
             setFieldBackground(tableWidget, QtGui.QColor(255, 0, 0), i)
         else:
             setFieldBackground(tableWidget, QtGui.QColor(255, 255, 255), i)
-    elif op == 'lesser then':
+    elif op == 'lesser than':
         if data.dic[key] < threshold:
             setFieldBackground(tableWidget, QtGui.QColor(255, 0, 0), i)
         else:
@@ -359,15 +359,16 @@ def updateP3Interface(data):
 # Funcionaento semelhante ao do pacote 1
 def updateP4Interface(data):
 
-    elements = len(data.dic['ext'])
-    for ext, i in zip(data.dic['ext'], range(0, elements)):
-        item = QTableWidgetItem(str(ext))
+    elements = len(data.p4Order)
+    for key, i in zip(data.p4Order, range(0, elements)):
+        item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        ui.tableWidget_Package3.setItem(i, 1, item)
+        ui.tableWidget_StrainGauge.setItem(i, 1, item)
 
-    item = QTableWidgetItem(str(data.dic['time4']))
-    item.setTextAlignment(QtCore.Qt.AlignCenter)
-    ui.tableWidget_Package3.setItem(i+1, 1, item)
+        if data.alarms[key] != []:
+            checkAlarm(data, key, ui.tableWidget_StrainGauge, i)
+        else:
+            setFieldBackground(ui.tableWidget_StrainGauge, QtGui.QColor(255, 255, 255), i)
 
 
 def saveAlarm():
@@ -464,7 +465,7 @@ ui.setupUi(MainWindow)
 
 # Classes globais
 errorLog = Log(ui.errorLog)
-bufferLog = Log(ui.textBrowser_Buffer, maxElements=6)
+bufferLog = Log(ui.textBrowser_Buffer, maxElements=15)
 
 # updateInterfaceFunctions é um dicionario que contem algumas funcoes de atualizacao da interface
 # ele é passado como parametro na criacao da classe program, para que essas funcoes possam ser chamadas por ela
