@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1369</width>
-    <height>732</height>
+    <height>796</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2194,7 +2194,7 @@
       <x>690</x>
       <y>0</y>
       <width>541</width>
-      <height>701</height>
+      <height>751</height>
      </rect>
     </property>
     <property name="font">
@@ -2211,7 +2211,7 @@
        <x>20</x>
        <y>30</y>
        <width>251</width>
-       <height>391</height>
+       <height>411</height>
       </rect>
      </property>
      <property name="font">
@@ -2331,6 +2331,11 @@
      <row>
       <property name="text">
        <string>Beacon</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Time</string>
       </property>
      </row>
      <column>
@@ -2489,7 +2494,7 @@
      <property name="geometry">
       <rect>
        <x>270</x>
-       <y>30</y>
+       <y>420</y>
        <width>271</width>
        <height>331</height>
       </rect>
@@ -2723,13 +2728,13 @@
      <property name="geometry">
       <rect>
        <x>280</x>
-       <y>360</y>
+       <y>420</y>
        <width>71</width>
        <height>20</height>
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PACKAGE 3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PACKAGE 2&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_39">
@@ -2742,16 +2747,16 @@
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PACKAGE 2&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PACKAGE 3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
     <widget class="QTableWidget" name="tableWidget_Package3">
      <property name="geometry">
       <rect>
        <x>270</x>
-       <y>360</y>
+       <y>30</y>
        <width>271</width>
-       <height>331</height>
+       <height>391</height>
       </rect>
      </property>
      <property name="font">
@@ -2816,6 +2821,21 @@
      <row>
       <property name="text">
        <string>Runners</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Vent</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Bomba</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Mata</string>
       </property>
      </row>
      <row>

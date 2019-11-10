@@ -9,51 +9,36 @@ class Data:
         # Constantes
         self.wheelPosMax = 0
         self.wheelPosMin = 0
-        self.pSizes = [16, 22, 16, 30]
+        self.pSizes = [36, 34, 39, 42]
 
         # Dados
-        self.p1Order = ['acelX', 'acelY', 'acelZ', 'velDD', 'velT', 'sparkCut', 'suspPos', 'time']
-        self.p2Order = ['oleoP', 'fuelP', 'tps', 'rearBrakeP', 'frontBrakeP', 'volPos', 'beacon', 'correnteBat', 'rpm', 'time2']
-        self.p3Order = ['ect', 'batVoltage', 'releBomba', 'releVent', 'pduTemp', 'tempDiscoD', 'tempDiscoE', 'time3']
-        self.p4Order = ['ext1', 'ext2', 'ext3', 'ext4', 'ext5', 'ext6', 'ext7', 'ext8', 'time4']
+        self.p1Order = ['acelX_DE', 'acelY_DE', 'acelZ_DE', 'acelX_DD', 'acelY_DD', 'acelZ_DD',
+                        'acelX_TE', 'acelY_TE', 'acelZ_TE', 'acelX_TD', 'acelY_TD', 'acelZ_TD',
+                        'velDE', 'velDD', 'velTE', 'velTD', 'rpm', 'beacon', 'time']
+        self.p2Order = ['tps', 'oleoP', 'fuelP', 'injectors', 'suspDE', 'suspDD', 'suspTE', 'suspTD',
+                        'volPos', 'correnteBat', 'correnteVent', 'correnteBomba', 'frontBrakeP',  'rearBrakeP', 'time2']
+        self.p3Order = ['batVoltage', 'ect', 'oilTemp', 'tempDiscoDE', 'tempDiscoDD', 'tempDiscoTE', 'tempDiscoTD',
+                        'tempVent', 'tempBomba', 'runners', 'releVent', 'releBomba', 'mata', 'gpsLat', 'gpsLong',
+                        'gpsNS', 'gpsEW', 'time3']
+        self.p4Order = ['ext1', 'ext2', 'ext3', 'ext4', 'ext5', 'ext6', 'ext7', 'ext8', 'ext9', 'ext10',
+                        'ext11', 'ext12', 'time4']
         self.updateDataFunctions = {1: self.updateP1Data, 2: self.updateP2Data, 3: self.updateP3Data, 4: self.updateP4Data}
 
         self.dic = {
-            'acelX': 0,
-            'acelY': 0,
-            'acelZ': 0,
-            'velDD': 0,
-            'velT': 0,
-            'sparkCut': 0,
-            'suspPos': 0,
-            'oleoP': 0,
-            'fuelP': 0,
-            'tps': 0,
-            'rearBrakeP': 0,
-            'frontBrakeP': 0,
-            'volPos': 0,
-            'beacon': 0,
-            'correnteBat': 0,
-            'rpm': 0,
-            'ect': 0,
-            'batVoltage': 0,
-            'releBomba': 0,
-            'releVent': 0,
-            'pduTemp': 0,
-            'tempDiscoD': 0,
-            'tempDiscoE': 0,
-            'time': 0,
-            'time2': 0,
-            'time3': 0,
-            'time4': 0,
-            'ext1': 0,
-            'ext2': 0,
-            'ext3': 0,
-            'ext4': 0,
-            'ext5': 0,
-            'ext6': 0,
-            'ext7': 0,
-            'ext8': 0,
+            'acelX_DE': 0, 'acelY_DE': 0, 'acelZ_DE': 0, 'acelX_DD': 0, 'acelY_DD': 0, 'acelZ_DD': 0,
+            'acelX_TE': 0, 'acelY_TE': 0, 'acelZ_TE': 0, 'acelX_TD': 0, 'acelY_TD': 0, 'acelZ_TD': 0,
+            'velDE': 0, 'velDD': 0, 'velTE': 0, 'velTD': 0, 'rpm': 0, 'beacon': 0, 'time': 0,
+
+            'tps': 0, 'oleoP': 0, 'fuelP': 0, 'injectors': 0, 'suspDE': 0, 'suspDD': 0, 'suspTE': 0, 'suspTD': 0,
+            'volPos': 0, 'correnteBat': 0, 'correnteVent': 0, 'correnteBomba': 0, 'frontBrakeP': 0,  'rearBrakeP': 0, 'time2': 0,
+
+            'batVoltage': 0, 'ect': 0, 'oilTemp': 0, 'tempDiscoDE': 0, 'tempDiscoDD': 0, 'tempDiscoTE': 0, 'tempDiscoTD': 0,
+            'tempVent': 0, 'tempBomba': 0, 'runners': 0, 'releVent': 0, 'releBomba': 0, 'mata': 0, 'gpsLat': 0, 'gpsLong': 0,
+            'gpsNS': 0, 'gpsEW': 0, 'time3': 0,
+
+            'ext1': 0, 'ext2': 0, 'ext3': 0, 'ext4': 0, 'ext5': 0, 'ext6': 0, 'ext7': 0, 'ext8': 0, 'ext9': 0, 'ext10': 0,
+            'ext11': 0, 'ext12': 0, 'time4': 0,
+
         }
 
         self.dicRaw = copy.deepcopy(self.dic)
@@ -81,55 +66,63 @@ class Data:
 
     def updateP1Data(self, buffer):
         # recebe o valor contido na lista de dados(leitura) em suas respectivas posições e realiza as operações de deslocamento e soma binária
-        if ((int(buffer[0]) == 1) and (len(buffer) == self.pSizes[0])):  # testa se é o pacote 1 e está completo
-            self.dicRaw['acelX'] = (int(buffer[2]) << 8) + int(buffer[3])
-            self.dicRaw['acelX'] = self.twosComplement(self.dicRaw['acelX'], 16)
-            self.dic['acelX'] = round(float(self.dicRaw['acelX'] / 16384), 3)
+        if ((int(buffer[0]) == 1) and (len(buffer) == self.pSizes[0])):  # testa se é o pacote 1 e está completo.
 
-            self.dicRaw['acelY'] = (int(buffer[4]) << 8) + int(buffer[5])
-            self.dicRaw['acelY'] = self.twosComplement(self.dicRaw['acelY'], 16)
-            self.dic['acelY'] = round(float(self.dicRaw['acelY'] / 16384), 3)
+            # Acelerometros
+            for i in range(0, 12):
+                j = 2 + 2*i
+                key = self.p1Order[i]
+                self.dicRaw[key] =  (buffer[j] << 8) + buffer[j+1]
+                self.dicRaw[key] = self.twosComplement(self.dicRaw[key], 16) # Complemento de 2
+                self.dic[key] = round(float(self.dicRaw[key] / 16384), 3)
+            # self.dicRaw['acelX'] = (int(buffer[2]) << 8) + int(buffer[3])
+            # self.dicRaw['acelX'] = self.twosComplement(self.dicRaw['acelX'], 16)
+            # self.dic['acelX'] = round(float(self.dicRaw['acelX'] / 16384), 3)
 
-            self.dicRaw['acelZ'] = (int(buffer[6]) << 8) + int(buffer[7])
-            self.dicRaw['acelZ'] = self.twosComplement(self.dicRaw['acelZ'], 16)
-            self.dic['acelZ'] = round(float(self.dicRaw['acelZ'] / 16384), 3)
+            self.dicRaw['velDE'] = int(buffer[26])
+            self.dicRaw['velDD'] = int(buffer[27])
+            self.dicRaw['velTE'] = int(buffer[28])
+            self.dicRaw['velTD'] = int(buffer[29])
+            self.dicRaw['rpm'] = (int(buffer[30]) << 8) + int(buffer[31])
+            self.dicRaw['beacon'] = int(buffer[32])
+            self.dicRaw['time'] = ((buffer[33]) << 8) + int(buffer[34])
 
-            self.dic['velDD'] = int(buffer[8])
-            self.dicRaw['velDD'] = int(buffer[8])
-            self.dic['velT'] = int(buffer[9])
-            self.dicRaw['velT'] = int(buffer[9])
-            self.dicRaw['sparkCut'] = ((buffer[10]) & 128) >> 7
-            self.dic['sparkCut'] = self.dicRaw['sparkCut']
-            self.dicRaw['suspPos'] = (((buffer[10]) & 127) << 8) + int(buffer[11])
-            self.dic['suspPos'] = self.dicRaw['suspPos']
-            self.dicRaw['time'] = ((buffer[12]) << 8) + int(buffer[13])
+            self.dic['velDE'] = self.dicRaw['velDE']
+            self.dic['velDD'] = self.dicRaw['velDD']
+            self.dic['velTE'] = self.dicRaw['velTE']
+            self.dic['velTD'] = self.dicRaw['velTD']
+            self.dic['rpm'] = self.dicRaw['rpm']
+            self.dic['beacon'] = self.dicRaw['beacon']
             self.dic['time'] = 25 * self.dicRaw['time']
+
             return 1
         else:
             return 0
 
     def updateP2Data(self, buffer):
         if ((int(buffer[0]) == 2) and (len(buffer) == self.pSizes[1])):  # testa se é o pacote 2 e está completo
-            self.dicRaw['oleoP'] = (int(buffer[2]) << 8) + int(buffer[3])
-            self.dic['oleoP'] = round(float(self.dicRaw['oleoP'] * 0.001), 4)
-            self.dicRaw['fuelP'] = (int(buffer[4]) << 8) + int(buffer[5])
-            self.dic['fuelP'] = round(float(self.dicRaw['fuelP'] * 0.001), 4)
-            self.dicRaw['tps'] = (int(buffer[6]) << 8) + int(buffer[7])
+
+            # Todos os dados do pacote 2 sao no formato byte1 << 8 | byte2
+            for i in range(0, 15):
+                j = 2 + 2*i
+                key = self.p1Order[i]
+                self.dicRaw[key] =  (buffer[j] << 8) + buffer[j+1]
+
             self.dic['tps'] = self.dicRaw['tps']
-            self.dicRaw['rearBrakeP'] = (int(buffer[8]) << 8) + int(buffer[9])
+            self.dic['oleoP'] = round(float(self.dicRaw['oleoP'] * 0.001), 4)
+            self.dic['fuelP'] = round(float(self.dicRaw['fuelP'] * 0.001), 4)
             self.dic['rearBrakeP'] = round(self.dicRaw['rearBrakeP'] * 0.02536, 1)
-            self.dicRaw['frontBrakeP'] = (int(buffer[10]) << 8) + int(buffer[11])
             self.dic['frontBrakeP'] = round(self.dicRaw['frontBrakeP'] * 0.02536, 1)
-            self.dicRaw['volPos'] = (int(buffer[12]) << 8) + int(buffer[13])
             if self.wheelPosMax - self.wheelPosMin != 0:
                 self.dic['volPos'] = round(((self.dicRaw['volPos'] - self.wheelPosMin) * 240 / (self.wheelPosMax - self.wheelPosMin) - 120), 2)
-            self.dicRaw['beacon'] = int(buffer[14] >> 7)
-            self.dic['beacon'] = self.dicRaw['beacon']
-            self.dicRaw['correnteBat'] = ((int(buffer[14]) & 127) << 8) + int(buffer[15])
+            self.dic['injectors'] = self.dicRaw['injectors']
             self.dic['correnteBat'] = self.dicRaw['correnteBat']
-            self.dicRaw['rpm'] = (int(buffer[16]) << 8) + int(buffer[17])
-            self.dic['rpm'] = self.dicRaw['rpm']
-            self.dicRaw['time2'] = (int(buffer[18]) << 8) + int(buffer[19])
+            self.dic['suspDE'] = self.dicRaw['suspDE']
+            self.dic['suspDD'] = self.dicRaw['suspDD']
+            self.dic['suspTE'] = self.dicRaw['suspTE']
+            self.dic['suspTD'] = self.dicRaw['suspTD']
+            self.dic['correnteVent'] = self.dicRaw['correnteVent']
+            self.dic['correnteBomba'] = self.dicRaw['correnteBomba']
             self.dic['time2'] = 25 * self.dicRaw['time2']
             return 1
         else:
@@ -138,22 +131,49 @@ class Data:
     def updateP3Data(self, buffer):
         if ((int(buffer[0]) == 3) and (len(buffer) == self.pSizes[2])):  # testa se é o pacote 3 e está completo
 
-            self.dicRaw['ect'] = (buffer[2] << 8) + buffer[3]
-            self.dic['ect'] = round(float(self.dicRaw['ect'] * 0.1), 2)
-            self.dicRaw['batVoltage'] = (buffer[4] << 8) + (buffer[5])
-            self.dic['batVoltage'] = round(float(self.dicRaw['batVoltage'] * 0.01), 2)
-            self.dicRaw['releBomba'] = int((buffer[6] & 128) >> 7)
-            self.dic['releBomba'] = self.dicRaw['releBomba']
+            # os 10 primeiros dados sao no formato byte1 <<8 | byte2
+            for i in range(0, 9):
+                j = 2 + 2*i
+                key = self.p1Order[i]
+                self.dicRaw[key] =  (buffer[j] << 8) + buffer[j+1]
+
+            self.dicRaw['releBomba'] = int((buffer[21] & 128) >> 7) #consertar
             self.dicRaw['releVent'] = int((buffer[6] & 32) >> 5)
+            self.dicRaw['mata'] = int((buffer[21] & 32) >> 7)
+            self.dicRaw['gpsLat'] = (buffer[22] << 16) + (buffer[23] << 8) + buffer[24]
+            self.dicRaw['gpsLong'] = (buffer[25] << 16) + (buffer[26] << 8) + buffer[27]
+            self.dicRaw['gpsNS'] = int(buffer[28])
+            self.dicRaw['gpsEW'] = int(buffer[29])
+            self.dicRaw['time3'] = (buffer[37] << 8) + buffer[38]
+
+            # Falta gps hora, minuto, segundo, ms, ano, mes dia nessa ordem
+            # buffer3[30] = hgps.hour;
+            # buffer3[31] = hgps.minute;
+            # buffer3[32] = hgps.seconds;
+            # buffer3[33] = hgps.milliseconds;
+            # buffer3[34] = hgps.year;
+            # buffer3[35] = hgps.month;
+            # buffer3[36] = hgps.day;
+
+            self.dic['batVoltage'] = round(float(self.dicRaw['batVoltage'] * 0.01), 2)
+            self.dic['ect'] = round(float(self.dicRaw['ect'] * 0.1), 2)
+            self.dic['oilTemp'] = self.dicRaw['oilTemp']
+            self.dic['tempDiscoDE'] = round(float(self.dicRaw['tempDiscoDE']), 2)
+            self.dic['tempDiscoDD'] = round(float(self.dicRaw['tempDiscoDD']), 2)
+            self.dic['tempDiscoTE'] = round(float(self.dicRaw['tempDiscoTE']), 2)
+            self.dic['tempDiscoTD'] = round(float(self.dicRaw['tempDiscoTD']), 2)
+            self.dic['tempVent'] = self.dicRaw['tempVent']
+            self.dic['tempBomba'] = self.dicRaw['tempBomba']
+            self.dic['runners'] = self.dicRaw['runners']
             self.dic['releVent'] = self.dicRaw['releVent']
-            self.dicRaw['pduTemp'] = (buffer[7] << 8) + buffer[7]
-            self.dic['pduTemp'] = round(float(self.dicRaw['pduTemp']), 2)
-            self.dicRaw['tempDiscoE'] = (buffer[8] << 8) + buffer[9]
-            self.dic['tempDiscoE'] = round(float(self.dicRaw['tempDiscoE']), 2)
-            self.dicRaw['tempDiscoD'] = (buffer[10] << 8) + buffer[11]
-            self.dic['tempDiscoD'] = round(float(self.dicRaw['tempDiscoD']), 2)
-            self.dicRaw['time3'] = (buffer[12] << 8) + buffer[13]
+            self.dic['releBomba'] = self.dicRaw['releBomba']
+            self.dic['mata'] = self.dicRaw['mata']
+            self.dic['gpsLat'] = self.dicRaw['gpsLat']
+            self.dic['gpsLong'] = self.dicRaw['gpsLong']
+            self.dic['gpsNS'] = self.dicRaw['gpsNS']
+            self.dic['gpsEW'] = self.dicRaw['gpsEW']
             self.dic['time3'] = 25 * self.dicRaw['time3']
+
             return 1
         else:
             return 0
@@ -165,7 +185,7 @@ class Data:
                 key = self.p4Order[i]
                 self.dicRaw[key] = (buffer[j] << 16) + (buffer[j+1] << 8) + buffer[j+2]
                 self.dic[key] = self.dicRaw[key]
-            self.dicRaw['time4'] = (buffer[26] << 8) + (buffer[27])
+            self.dicRaw['time4'] = (buffer[38] << 8) + (buffer[39])
             self.dic['time4'] = 25 * self.dicRaw['time4']
             return 1
         else:
