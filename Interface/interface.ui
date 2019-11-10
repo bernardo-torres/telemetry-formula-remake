@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1369</width>
+    <width>1328</width>
     <height>796</height>
    </rect>
   </property>
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -703,19 +703,6 @@
         <string>Choose File</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButtonOpenFile">
-       <property name="geometry">
-        <rect>
-         <x>410</x>
-         <y>60</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>ChooseFile</string>
-       </property>
-      </widget>
      </widget>
      <widget class="QPushButton" name="pushButton_SaveSetupValues">
       <property name="geometry">
@@ -1257,7 +1244,7 @@
        </rect>
       </property>
       <property name="title">
-       <string>RELAY ACTIVATION</string>
+       <string>MOS ACTIVATION</string>
       </property>
       <widget class="QGroupBox" name="groupBox_21">
        <property name="geometry">
@@ -1281,7 +1268,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Fan Relay</string>
+         <string>Fan MOS</string>
         </property>
        </widget>
       </widget>
@@ -1307,7 +1294,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Fuel Pump Relay</string>
+         <string>Fuel Pump MOS</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -1332,19 +1319,6 @@
        <property name="title">
         <string/>
        </property>
-       <widget class="QRadioButton" name="radioButton_SparkcutRelay">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>10</y>
-          <width>101</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Sparkcut Relay</string>
-        </property>
-       </widget>
       </widget>
      </widget>
     </widget>
@@ -1455,47 +1429,6 @@
        </property>
        <property name="format">
         <string>%p%</string>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QGroupBox" name="groupBox_12">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>421</width>
-        <height>331</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>G - G DIAGRAM</string>
-      </property>
-      <widget class="PlotWidget" name="graphicsView_DiagramaGG">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>30</y>
-         <width>371</width>
-         <height>271</height>
-        </rect>
-       </property>
-       <property name="backgroundBrush">
-        <brush brushstyle="NoBrush">
-         <color alpha="255">
-          <red>255</red>
-          <green>255</green>
-          <blue>255</blue>
-         </color>
-        </brush>
-       </property>
-       <property name="foregroundBrush">
-        <brush brushstyle="NoBrush">
-         <color alpha="255">
-          <red>255</red>
-          <green>255</green>
-          <blue>255</blue>
-         </color>
-        </brush>
        </property>
       </widget>
      </widget>
@@ -1687,6 +1620,339 @@
       </widget>
      </widget>
     </widget>
+    <widget class="QWidget" name="tab_6">
+     <attribute name="title">
+      <string>GG</string>
+     </attribute>
+     <widget class="QGroupBox" name="groupBox_12">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>10</y>
+        <width>321</width>
+        <height>281</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>G - G DIAGRAM DD</string>
+      </property>
+      <widget class="PlotWidget" name="graphicsView_DiagramaGG_DD">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>301</width>
+         <height>261</height>
+        </rect>
+       </property>
+       <property name="backgroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+       <property name="foregroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_19">
+       <property name="geometry">
+        <rect>
+         <x>320</x>
+         <y>210</y>
+         <width>321</width>
+         <height>281</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>G - G DIAGRAM</string>
+       </property>
+       <widget class="PlotWidget" name="graphicsView_DiagramaGG_2">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>301</width>
+          <height>261</height>
+         </rect>
+        </property>
+        <property name="backgroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </property>
+        <property name="foregroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_24">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>10</y>
+        <width>321</width>
+        <height>281</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>G - G DIAGRAM DE</string>
+      </property>
+      <widget class="PlotWidget" name="graphicsView_DiagramaGG_DE">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>301</width>
+         <height>261</height>
+        </rect>
+       </property>
+       <property name="backgroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+       <property name="foregroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_25">
+       <property name="geometry">
+        <rect>
+         <x>320</x>
+         <y>210</y>
+         <width>321</width>
+         <height>281</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>G - G DIAGRAM</string>
+       </property>
+       <widget class="PlotWidget" name="graphicsView_DiagramaGG_4">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>301</width>
+          <height>261</height>
+         </rect>
+        </property>
+        <property name="backgroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </property>
+        <property name="foregroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_26">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>310</y>
+        <width>321</width>
+        <height>281</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>G - G DIAGRAM TD</string>
+      </property>
+      <widget class="PlotWidget" name="graphicsView_DiagramaGG_TD">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>301</width>
+         <height>261</height>
+        </rect>
+       </property>
+       <property name="backgroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+       <property name="foregroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_27">
+       <property name="geometry">
+        <rect>
+         <x>320</x>
+         <y>210</y>
+         <width>321</width>
+         <height>281</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>G - G DIAGRAM</string>
+       </property>
+       <widget class="PlotWidget" name="graphicsView_DiagramaGG_6">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>301</width>
+          <height>261</height>
+         </rect>
+        </property>
+        <property name="backgroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </property>
+        <property name="foregroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_28">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>310</y>
+        <width>321</width>
+        <height>281</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>G - G DIAGRAM TE</string>
+      </property>
+      <widget class="PlotWidget" name="graphicsView_DiagramaGG_TE">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>301</width>
+         <height>261</height>
+        </rect>
+       </property>
+       <property name="backgroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+       <property name="foregroundBrush">
+        <brush brushstyle="NoBrush">
+         <color alpha="255">
+          <red>255</red>
+          <green>255</green>
+          <blue>255</blue>
+         </color>
+        </brush>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_29">
+       <property name="geometry">
+        <rect>
+         <x>320</x>
+         <y>210</y>
+         <width>321</width>
+         <height>281</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>G - G DIAGRAM</string>
+       </property>
+       <widget class="PlotWidget" name="graphicsView_DiagramaGG_8">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>301</width>
+          <height>261</height>
+         </rect>
+        </property>
+        <property name="backgroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </property>
+        <property name="foregroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+    </widget>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
       <string>Strain Gauge</string>
@@ -1708,7 +1974,7 @@
         <rect>
          <x>40</x>
          <y>50</y>
-         <width>351</width>
+         <width>241</width>
          <height>311</height>
         </rect>
        </property>
@@ -1785,11 +2051,6 @@
        </row>
        <column>
         <property name="text">
-         <string>DATA</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
          <string>VALUE</string>
         </property>
        </column>
@@ -1800,21 +2061,13 @@
        </column>
        <item row="0" column="0">
         <property name="text">
-         <string>P1 Strain Gauge</string>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-       </item>
-       <item row="0" column="1">
-        <property name="text">
          <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="0" column="2">
+       <item row="0" column="1">
         <property name="text">
          <string>MPa</string>
         </property>
@@ -1824,21 +2077,13 @@
        </item>
        <item row="1" column="0">
         <property name="text">
-         <string>P2 Strain Gauge</string>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-       </item>
-       <item row="1" column="1">
-        <property name="text">
          <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="1" column="2">
+       <item row="1" column="1">
         <property name="text">
          <string>MPa</string>
         </property>
@@ -1848,21 +2093,13 @@
        </item>
        <item row="2" column="0">
         <property name="text">
-         <string>P3 Strain Gauge</string>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-       </item>
-       <item row="2" column="1">
-        <property name="text">
          <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="2" column="2">
+       <item row="2" column="1">
         <property name="text">
          <string>MPa</string>
         </property>
@@ -1872,21 +2109,13 @@
        </item>
        <item row="3" column="0">
         <property name="text">
-         <string>P4 Strain Gauge</string>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-       </item>
-       <item row="3" column="1">
-        <property name="text">
          <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="3" column="2">
+       <item row="3" column="1">
         <property name="text">
          <string>MPa</string>
         </property>
@@ -1896,21 +2125,13 @@
        </item>
        <item row="4" column="0">
         <property name="text">
-         <string>P5 Strain Gauge</string>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-       </item>
-       <item row="4" column="1">
-        <property name="text">
          <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="4" column="2">
+       <item row="4" column="1">
         <property name="text">
          <string>MPa</string>
         </property>
@@ -1920,21 +2141,13 @@
        </item>
        <item row="5" column="0">
         <property name="text">
-         <string>P6 Strain Gauge</string>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-       </item>
-       <item row="5" column="1">
-        <property name="text">
          <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="5" column="2">
+       <item row="5" column="1">
         <property name="text">
          <string>MPa</string>
         </property>
@@ -1944,21 +2157,13 @@
        </item>
        <item row="6" column="0">
         <property name="text">
-         <string>P7 Strain Gauge</string>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-       </item>
-       <item row="6" column="1">
-        <property name="text">
          <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="6" column="2">
+       <item row="6" column="1">
         <property name="text">
          <string>MPa</string>
         </property>
@@ -1968,7 +2173,7 @@
        </item>
        <item row="7" column="0">
         <property name="text">
-         <string>P8 Strain Gauge</string>
+         <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
@@ -1976,29 +2181,33 @@
        </item>
        <item row="7" column="1">
         <property name="text">
-         <string/>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
-        </property>
-       </item>
-       <item row="7" column="2">
-        <property name="text">
          <string>MPa</string>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="12" column="0">
+       <item row="8" column="1">
         <property name="text">
-         <string>Time</string>
-        </property>
-        <property name="textAlignment">
-         <set>AlignCenter</set>
+         <string>-</string>
         </property>
        </item>
-       <item row="12" column="1">
+       <item row="9" column="1">
+        <property name="text">
+         <string>-</string>
+        </property>
+       </item>
+       <item row="10" column="1">
+        <property name="text">
+         <string>-</string>
+        </property>
+       </item>
+       <item row="11" column="1">
+        <property name="text">
+         <string>-</string>
+        </property>
+       </item>
+       <item row="12" column="0">
         <property name="text">
          <string/>
         </property>
@@ -2006,7 +2215,7 @@
          <set>AlignCenter</set>
         </property>
        </item>
-       <item row="12" column="2">
+       <item row="12" column="1">
         <property name="text">
          <string>ms</string>
         </property>
@@ -2125,11 +2334,27 @@
      <widget class="QTextBrowser" name="errorLog">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>20</y>
+        <x>0</x>
+        <y>70</y>
         <width>671</width>
-        <height>581</height>
+        <height>531</height>
        </rect>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="radioButton_errorLog">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>20</y>
+        <width>81</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ErrorLog ON</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>
@@ -2245,21 +2470,6 @@
      </attribute>
      <row>
       <property name="text">
-       <string>Accel X DE</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>Accel Y DE</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>Accel Z DE</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
        <string>Accel X DD</string>
       </property>
      </row>
@@ -2275,17 +2485,17 @@
      </row>
      <row>
       <property name="text">
-       <string>Accel X TE</string>
+       <string>Accel X DE</string>
       </property>
      </row>
      <row>
       <property name="text">
-       <string>Accel Y TE</string>
+       <string>Accel Y DE</string>
       </property>
      </row>
      <row>
       <property name="text">
-       <string>Accel Z TE</string>
+       <string>Accel Z DE</string>
       </property>
      </row>
      <row>
@@ -2301,6 +2511,21 @@
      <row>
       <property name="text">
        <string>Accel Z TD</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Accel X TE</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Accel Y TE</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Accel Z TE</string>
       </property>
      </row>
      <row>
@@ -2474,6 +2699,61 @@
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
+      </property>
+     </item>
+     <item row="8" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="9" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="10" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="11" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="12" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="13" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="14" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="15" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="16" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="17" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="18" column="1">
+      <property name="text">
+       <string>-</string>
       </property>
      </item>
     </widget>
@@ -2653,7 +2933,7 @@
      </item>
      <item row="3" column="1">
       <property name="text">
-       <string/>
+       <string>-</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2721,6 +3001,41 @@
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
+      </property>
+     </item>
+     <item row="8" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="9" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="10" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="11" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="12" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="13" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="14" column="1">
+      <property name="text">
+       <string>-</string>
       </property>
      </item>
     </widget>
@@ -2845,17 +3160,17 @@
      </row>
      <row>
       <property name="text">
-       <string>New Row</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
        <string>GPS Long</string>
       </property>
      </row>
      <row>
       <property name="text">
        <string>GPS NS</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>GPS EW</string>
       </property>
      </row>
      <row>
@@ -2963,7 +3278,7 @@
      </item>
      <item row="5" column="1">
       <property name="text">
-       <string/>
+       <string>-</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -2995,7 +3310,7 @@
      </item>
      <item row="7" column="1">
       <property name="text">
-       <string/>
+       <string>-</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -3011,7 +3326,7 @@
      </item>
      <item row="8" column="1">
       <property name="text">
-       <string/>
+       <string>-</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
@@ -3031,6 +3346,46 @@
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
+      </property>
+     </item>
+     <item row="10" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="11" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="12" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="13" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="14" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="15" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="16" column="1">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </item>
+     <item row="17" column="1">
+      <property name="text">
+       <string>-</string>
       </property>
      </item>
     </widget>
@@ -3108,7 +3463,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1369</width>
+     <width>1328</width>
      <height>21</height>
     </rect>
    </property>

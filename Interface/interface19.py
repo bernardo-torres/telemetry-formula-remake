@@ -99,6 +99,9 @@ def startProgram():
         timeout = None
         program.openSerialPort(port, baudrate, timeout)
 
+        if not ui.radioButton_errorLog.isChecked():
+            errorLog.on = 'off'
+            print("deu")
         # Inicializa programa e coloca constantes
         updateConstants()
         program.stop = 0
@@ -191,10 +194,9 @@ def updatePlot(data):
 
 # Coloca o background da linha da lista na cor color, onde color e do tipo QtGui.QColor(r, g, b)
 def setFieldBackground(tableWidget, color, i):
-    for j in range(0, 3):
+    for j in range(0, 2):
         item = tableWidget.item(i, j)
         item.setBackground(color)
-
 
 # Confere se alarme deve ser ativado e colore bacgrond caso seja o caso
 def checkAlarm(data, key, tableWidget, i):
@@ -230,7 +232,7 @@ def updateP1Interface(data):
         # Cria elemento da tabela, faz o alinhamento e coloca valor
         item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        ui.tableWidget_Package1.setItem(i, 1, item)
+        ui.tableWidget_Package1.setItem(i, 0, item)
         # Alarmes
         if data.alarms[key] != []:
             checkAlarm(data, key, ui.tableWidget_Package1, i)
@@ -238,18 +240,20 @@ def updateP1Interface(data):
             setFieldBackground(ui.tableWidget_Package1, QtGui.QColor(255, 255, 255), i)
 
     # print(data.dic['acelX'])
-    if (int(data.dic['sparkCut']) == 1):
-        ui.radioButton_SparkcutRelay.setChecked(False)
-    else:
-        ui.radioButton_SparkcutRelay.setChecked(True)
 
     update_diagramagg(data)  # Chamada da função update_diagramagg
 
 
 # função que atualiza o diagrama gg
 def update_diagramagg(data):
-    ui.graphicsView_DiagramaGG.clear()
-    ui.graphicsView_DiagramaGG.plot([data.dic['acelX']], [data.dic['acelY']], pen=None, symbol='o')
+    ui.graphicsView_DiagramaGG_DD.clear()
+    ui.graphicsView_DiagramaGG_DD.plot([data.dic['acelX_DD']], [data.dic['acelY_DD']], pen=None, symbol='o')
+    ui.graphicsView_DiagramaGG_DE.clear()
+    ui.graphicsView_DiagramaGG_DE.plot([data.dic['acelX_DE']], [data.dic['acelY_DE']], pen=None, symbol='o')
+    ui.graphicsView_DiagramaGG_TD.clear()
+    ui.graphicsView_DiagramaGG_TD.plot([data.dic['acelX_TD']], [data.dic['acelY_TD']], pen=None, symbol='o')
+    ui.graphicsView_DiagramaGG_TE.clear()
+    ui.graphicsView_DiagramaGG_TE.plot([data.dic['acelX_TE']], [data.dic['acelY_TE']], pen=None, symbol='o')
 
 
 # Função que atualiza os mostradores relacionados aos dados do pacote 2
@@ -260,7 +264,7 @@ def updateP2Interface(data):
     for key, i in zip(data.p2Order, range(0, elements)):
         item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        ui.tableWidget_Package2.setItem(i, 1, item)
+        ui.tableWidget_Package2.setItem(i, 0, item)
 
         if data.alarms[key] != []:
             checkAlarm(data, key, ui.tableWidget_Package2, i)
@@ -298,7 +302,7 @@ def updateP3Interface(data):
     for key, i in zip(data.p3Order, range(0, elements)):
         item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        ui.tableWidget_Package3.setItem(i, 1, item)
+        ui.tableWidget_Package3.setItem(i, 0, item)
 
         if data.alarms[key] != []:
             checkAlarm(data, key, ui.tableWidget_Package3, i)
@@ -363,7 +367,7 @@ def updateP4Interface(data):
     for key, i in zip(data.p4Order, range(0, elements)):
         item = QTableWidgetItem(str(data.dic[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        ui.tableWidget_StrainGauge.setItem(i, 1, item)
+        ui.tableWidget_StrainGauge.setItem(i, 0, item)
 
         if data.alarms[key] != []:
             checkAlarm(data, key, ui.tableWidget_StrainGauge, i)
@@ -464,7 +468,7 @@ ui = Ui_MainWindow()
 ui.setupUi(MainWindow)
 
 # Classes globais
-errorLog = Log(ui.errorLog)
+errorLog = Log(ui.errorLog, maxElements=70)
 bufferLog = Log(ui.textBrowser_Buffer, maxElements=15)
 
 # updateInterfaceFunctions é um dicionario que contem algumas funcoes de atualizacao da interface
@@ -482,7 +486,6 @@ ui.lineEdit_WheelPosMin.editingFinished.connect(updateConstants)
 ui.lineEdit_WheelPosMax.editingFinished.connect(updateConstants)
 
 # ações
-ui.pushButtonOpenFile.clicked.connect(selectFile)
 ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
 ui.pushButton_StartProgram.clicked.connect(startProgram)  # botão para iniciar o programa
 ui.pushButton_UpdatePorts.clicked.connect(updatePorts)  # botão para atualizar as portas seriis disponíveis
@@ -496,8 +499,16 @@ ui.comboBox_Baudrate.addItems(["115200", "38400", "1200", "2400", "9600", "19200
 #ui.label_28.setPixmap(pixmap)
 loadSetup()  # inicializa os valores de setup de acordo com o arquivo setup
 ui.label_12.setText("Not saving...")  # informa na interface que os dados não estão sendo salvos
-ui.graphicsView_DiagramaGG.setXRange(-2, 2)
-ui.graphicsView_DiagramaGG.setYRange(-2, 2)
+
+# Range ggs
+ui.graphicsView_DiagramaGG_DD.setXRange(-2, 2)
+ui.graphicsView_DiagramaGG_DD.setYRange(-2, 2)
+ui.graphicsView_DiagramaGG_DE.setXRange(-2, 2)
+ui.graphicsView_DiagramaGG_DE.setYRange(-2, 2)
+ui.graphicsView_DiagramaGG_TD.setXRange(-2, 2)
+ui.graphicsView_DiagramaGG_TD.setYRange(-2, 2)
+ui.graphicsView_DiagramaGG_TE.setXRange(-2, 2)
+ui.graphicsView_DiagramaGG_TE.setYRange(-2, 2)
 
 # cores do gráfico
 ui.checkBox_OilPressure.setStyleSheet('color:blue')

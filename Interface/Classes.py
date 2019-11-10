@@ -9,11 +9,11 @@ class Data:
         # Constantes
         self.wheelPosMax = 0
         self.wheelPosMin = 0
-        self.pSizes = [36, 34, 39, 42]
+        self.pSizes = [37, 34, 42, 42]
 
         # Dados
-        self.p1Order = ['acelX_DE', 'acelY_DE', 'acelZ_DE', 'acelX_DD', 'acelY_DD', 'acelZ_DD',
-                        'acelX_TE', 'acelY_TE', 'acelZ_TE', 'acelX_TD', 'acelY_TD', 'acelZ_TD',
+        self.p1Order = ['acelX_DD', 'acelY_DD', 'acelZ_DD', 'acelX_DE', 'acelY_DE', 'acelZ_DE',
+                        'acelX_TD', 'acelY_TD', 'acelZ_TD', 'acelX_TE', 'acelY_TE', 'acelZ_TE',
                         'velDE', 'velDD', 'velTE', 'velTD', 'rpm', 'beacon', 'time']
         self.p2Order = ['tps', 'oleoP', 'fuelP', 'injectors', 'suspDE', 'suspDD', 'suspTE', 'suspTD',
                         'volPos', 'correnteBat', 'correnteVent', 'correnteBomba', 'frontBrakeP',  'rearBrakeP', 'time2']
@@ -25,9 +25,9 @@ class Data:
         self.updateDataFunctions = {1: self.updateP1Data, 2: self.updateP2Data, 3: self.updateP3Data, 4: self.updateP4Data}
 
         self.dic = {
-            'acelX_DE': 0, 'acelY_DE': 0, 'acelZ_DE': 0, 'acelX_DD': 0, 'acelY_DD': 0, 'acelZ_DD': 0,
-            'acelX_TE': 0, 'acelY_TE': 0, 'acelZ_TE': 0, 'acelX_TD': 0, 'acelY_TD': 0, 'acelZ_TD': 0,
-            'velDE': 0, 'velDD': 0, 'velTE': 0, 'velTD': 0, 'rpm': 0, 'beacon': 0, 'time': 0,
+            'acelX_DD': 0, 'acelY_DD': 0, 'acelZ_DD': 0, 'acelX_DE': 0, 'acelY_DE': 0, 'acelZ_DE': 0,
+            'acelX_TD': 0, 'acelY_TD': 0, 'acelZ_TD': 0, 'acelX_TE': 0, 'acelY_TE': 0, 'acelZ_TE': 0,
+            'velDD': 0, 'velDE': 0, 'velTD': 0, 'velTE': 0, 'rpm': 0, 'beacon': 0, 'time': 0,
 
             'tps': 0, 'oleoP': 0, 'fuelP': 0, 'injectors': 0, 'suspDE': 0, 'suspDD': 0, 'suspTE': 0, 'suspTD': 0,
             'volPos': 0, 'correnteBat': 0, 'correnteVent': 0, 'correnteBomba': 0, 'frontBrakeP': 0,  'rearBrakeP': 0, 'time2': 0,
@@ -79,10 +79,10 @@ class Data:
             # self.dicRaw['acelX'] = self.twosComplement(self.dicRaw['acelX'], 16)
             # self.dic['acelX'] = round(float(self.dicRaw['acelX'] / 16384), 3)
 
-            self.dicRaw['velDE'] = int(buffer[26])
-            self.dicRaw['velDD'] = int(buffer[27])
-            self.dicRaw['velTE'] = int(buffer[28])
-            self.dicRaw['velTD'] = int(buffer[29])
+            self.dicRaw['velDD'] = int(buffer[26])
+            self.dicRaw['velDE'] = int(buffer[27])
+            self.dicRaw['velTD'] = int(buffer[28])
+            self.dicRaw['velTE'] = int(buffer[29])
             self.dicRaw['rpm'] = (int(buffer[30]) << 8) + int(buffer[31])
             self.dicRaw['beacon'] = int(buffer[32])
             self.dicRaw['time'] = ((buffer[33]) << 8) + int(buffer[34])
@@ -103,9 +103,9 @@ class Data:
         if ((int(buffer[0]) == 2) and (len(buffer) == self.pSizes[1])):  # testa se é o pacote 2 e está completo
 
             # Todos os dados do pacote 2 sao no formato byte1 << 8 | byte2
-            for i in range(0, 15):
+            for i in range(0, len(self.p2Order)):
                 j = 2 + 2*i
-                key = self.p1Order[i]
+                key = self.p2Order[i]
                 self.dicRaw[key] =  (buffer[j] << 8) + buffer[j+1]
 
             self.dic['tps'] = self.dicRaw['tps']
@@ -132,19 +132,19 @@ class Data:
         if ((int(buffer[0]) == 3) and (len(buffer) == self.pSizes[2])):  # testa se é o pacote 3 e está completo
 
             # os 10 primeiros dados sao no formato byte1 <<8 | byte2
-            for i in range(0, 9):
+            for i in range(0, 10):
                 j = 2 + 2*i
-                key = self.p1Order[i]
+                key = self.p3Order[i]
                 self.dicRaw[key] =  (buffer[j] << 8) + buffer[j+1]
 
-            self.dicRaw['releBomba'] = int((buffer[21] & 128) >> 7) #consertar
+            self.dicRaw['releBomba'] = int((buffer[22] & 128) >> 7) #consertar
             self.dicRaw['releVent'] = int((buffer[6] & 32) >> 5)
-            self.dicRaw['mata'] = int((buffer[21] & 32) >> 7)
-            self.dicRaw['gpsLat'] = (buffer[22] << 16) + (buffer[23] << 8) + buffer[24]
-            self.dicRaw['gpsLong'] = (buffer[25] << 16) + (buffer[26] << 8) + buffer[27]
-            self.dicRaw['gpsNS'] = int(buffer[28])
-            self.dicRaw['gpsEW'] = int(buffer[29])
-            self.dicRaw['time3'] = (buffer[37] << 8) + buffer[38]
+            self.dicRaw['mata'] = int((buffer[22] & 32) >> 7)
+            self.dicRaw['gpsLat'] = (buffer[23] << 16) + (buffer[24] << 8) + buffer[25]
+            self.dicRaw['gpsLong'] = (buffer[26] << 16) + (buffer[27] << 8) + buffer[28]
+            self.dicRaw['gpsNS'] = int(buffer[29])
+            self.dicRaw['gpsEW'] = int(buffer[30])
+            self.dicRaw['time3'] = (buffer[38] << 8) + buffer[39]
 
             # Falta gps hora, minuto, segundo, ms, ano, mes dia nessa ordem
             # buffer3[30] = hgps.hour;
@@ -258,9 +258,12 @@ class Log():
         self.Log = []
         self.logInstance = logInstance
         self.maxElements = maxElements
+        self.on = 'on'
 
     # Insere novo texto de erro na primeira posicao do vetor
     def writeLog(self, text):
+        if self.on == 'off':
+            return
         self.Log.append(" ")
         # Faz o roll
         if len(self.Log) < self.maxElements:
