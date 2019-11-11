@@ -126,8 +126,9 @@ def startProgram():
 
 # Atualiza constantes com os valores lidos na interface
 def updateConstants():
-    program.data.wheelPosMax = int(ui.lineEdit_WheelPosMax.text())
-    program.data.wheelPosMin = int(ui.lineEdit_WheelPosMin.text())
+    if ui.lineEdit_WheelPosMax.text() != '' and ui.lineEdit_WheelPosMin.text() != '':
+        program.data.wheelPosMax = int(ui.lineEdit_WheelPosMax.text())
+        program.data.wheelPosMin = int(ui.lineEdit_WheelPosMin.text())
 
 
 # Função para definir nome do arquivo txt no qual os dados serão gravados,
@@ -458,7 +459,7 @@ def exit():
 
 
 # settings armazena os campos de configuracao na interface
-settings = QtCore.QSettings('test', 'interface_renovada')
+settings = QtCore.QSettings('testa', 'interface_renovada')
 
 # Roda janela
 app = QtWidgets.QApplication(sys.argv)

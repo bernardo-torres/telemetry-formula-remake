@@ -138,8 +138,8 @@ class Data:
                 self.dicRaw[key] =  (buffer[j] << 8) + buffer[j+1]
 
             self.dicRaw['releBomba'] = int((buffer[22] & 128) >> 7) #consertar
-            self.dicRaw['releVent'] = int((buffer[6] & 32) >> 5)
-            self.dicRaw['mata'] = int((buffer[22] & 32) >> 7)
+            self.dicRaw['releVent'] = int((buffer[6] & 8) >> 3)
+            self.dicRaw['mata'] = int((buffer[22] & 32) >> 5)
             self.dicRaw['gpsLat'] = (buffer[23] << 16) + (buffer[24] << 8) + buffer[25]
             self.dicRaw['gpsLong'] = (buffer[26] << 16) + (buffer[27] << 8) + buffer[28]
             self.dicRaw['gpsNS'] = int(buffer[29])
