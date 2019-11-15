@@ -140,11 +140,11 @@ if (TIMERCOUNT%2 == 0){
   Serial.write(buffer2, 34);
   Serial.write(buffer4, 42);
 }
-if(TIMERCOUNT%20 == 0){
+if(TIMERCOUNT%5 == 0){
   Serial.write(buffer3, 42);
  }
 TIMERCOUNT++;
-delay(20);
+delay(10);
 }
 
 void updateBuffer(){

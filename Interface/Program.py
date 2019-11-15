@@ -2,11 +2,12 @@
 import serial
 from Classes import Data, File, Log, vectorToString
 from PyQt5 import QtCore
+import time
 
 
 # Classe que executa o programa
 class Program():
-    def __init__(self, updateTime, errorLog, bufferLog, updateInterfaceFunctions):
+    def __init__(self, updateTime, errorLog, bufferLog, updateInterfaceFunctions, updateCounterMax=[0,0,0,0]):
 
         self.updateTime = updateTime
 
@@ -21,6 +22,10 @@ class Program():
 
         self.packIndexes = [1, 2, 3, 4]
         self.packSizes = self.data.pSizes
+
+        self.updateCounterMax = updateCounterMax  # numero de pacotes recebidos at atualizar a interface
+        self.updateCounter = [0, 0, 0, 0]
+        self.updateInterfaceEnabled = True
 
     def openSerialPort(self, port, baudrate, timeout):
         self.porta = serial.Serial()
@@ -42,41 +47,45 @@ class Program():
 
     # program() roda em loop
     def program(self):
-        global sec
         if (self.stop == 0):
             # Le dados da porta serial
 
             self.buffer = self.readFromSerialPort(self.packSizes, self.packIndexes)
-
             if len(self.buffer) != 0:
                 # chamada da função updateDataAndInterface para analisar os dados recebidos atualizar os mostradores da interface
-                self.updateDataAndInterface(self.buffer)
+                self.updateData(self.buffer, int(self.buffer[0]))
+                if self.updateInterfaceEnabled:
+                    self.updateInterface(self.buffer, int(self.buffer[0]))
 
             # Apos updateTime segundos, chama funcao program() novamente
             QtCore.QTimer.singleShot(self.updateTime, lambda: self.program())
 
-    def updateDataAndInterface(self, buffer):
-        packID = buffer[0]
-
+    def updateData(self, buffer, packID):
         # Atualiza dados em Data e atualiza campos respectivos na interface
         if (self.data.updateDataFunctions[packID](buffer) == 0):
             self.errorLog.writeLog(" updateData: Pacote " + str(packID) + "com tamanho diferente do configurado")
 
+        # Desloca vetores e chama funcao de atualizar graficos da interface
+        if packID == 2 or packID == 3:
+            self.data.rollArrays()
+
+    def updateInterface(self, buffer, packID):
+
         # Chama funcao updatePxInterface, atribuida no dicionario updateInterfaceFunctions, para a chave x = packID
-        self.updateInterfaceFunctions[packID](self.data)
+        if self.updateCounter[packID-1] >= self.updateCounterMax[packID-1]:
+            self.updateInterfaceFunctions[packID](self.data)
+            self.updateCounter[packID-1] = 0
+        else:
+            self.updateCounter[packID-1] += 1
 
         # Grava linha buffer no arquivo
         if self.dataFile.save == 1:
-            string = self.data.createPackString(buffer[0])
+            string = self.data.createPackString(packID)
             self.dataFile.writeRow(string)
 
-        # Desloca vetores e chama funcao de atualizar graficos da interface
-        self.data.rollArrays()
-        self.updateInterfaceFunctions['updatePlot'](self.data)
-        # updatePlot(self.data)
-
-        # Atualiza o mostrador textBrowser_Buffer com as ultimas 6 listas de dados recebidas.
+        # Atualiza o mostrador textBrowser_Buffer com as ultimas listas de dados recebidas.
         self.lastBuffers.writeLog(vectorToString(buffer, ' ', addNewLine=False))
+
 
     # Le buffer da porta serial. bufferSize é uma lista com os tamanhos dos pacotes e firstByteValues
     # é uma lista com os numeros dos pacotes (1,2,3,4)
@@ -88,6 +97,7 @@ class Program():
             read_buffer = b''
             # Le primeiro e segundo bytes
             firstByte = self.porta.read()
+
             if int.from_bytes(firstByte, byteorder='big') in firstByteValues:
                 read_buffer += firstByte
                 # Le o segundo byte de inicio

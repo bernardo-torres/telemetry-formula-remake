@@ -5,6 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import glob
 import numpy as np
+import time
 
 import serial
 from Classes import Data, File, Log, vectorToString
@@ -99,9 +100,6 @@ def startProgram():
         timeout = None
         program.openSerialPort(port, baudrate, timeout)
 
-        if not ui.radioButton_errorLog.isChecked():
-            errorLog.on = 'off'
-            print("deu")
         # Inicializa programa e coloca constantes
         updateConstants()
         program.stop = 0
@@ -126,9 +124,15 @@ def startProgram():
 
 # Atualiza constantes com os valores lidos na interface
 def updateConstants():
+    global program
     if ui.lineEdit_WheelPosMax.text() != '' and ui.lineEdit_WheelPosMin.text() != '':
         program.data.wheelPosMax = int(ui.lineEdit_WheelPosMax.text())
         program.data.wheelPosMin = int(ui.lineEdit_WheelPosMin.text())
+    program.updateCounterMax[0] = int(ui.updateCounterP1.value())
+    program.updateCounterMax[1] = int(ui.updateCounterP2.value())
+    program.updateCounterMax[2] = int(ui.updateCounterP3.value())
+    program.updateCounterMax[3] = int(ui.updateCounterP4.value())
+
 
 
 # Função para definir nome do arquivo txt no qual os dados serão gravados,
@@ -294,6 +298,8 @@ def updateP2Interface(data):
     ui.dial_WheelPos.setValue(data.dic['volPos'])
     ui.label_19.setText(str(data.dic['volPos']))
 
+    updatePlot(data)
+
 
 # Função que atualiza os mostradores relacionados aos dados do pacote 3
 # Funcionaento semelhante ao do pacote 1
@@ -358,6 +364,8 @@ def updateP3Interface(data):
         ui.radioButton_FuelPumpRelay.setChecked(False)
     else:
         ui.radioButton_FuelPumpRelay.setChecked(True)
+
+    updatePlot(data)
 
 
 # Função que atualiza os mostradores relacionados aos dados do pacote 4
@@ -454,6 +462,26 @@ def selectFile():
         return
 
 
+def logEnabled(log):
+    global errorLog, bufferLog
+    if ui.radioButton_errorLog.isChecked():
+        errorLog.on = 'on'
+    else:
+        errorLog.on = 'off'
+
+    if ui.radioButton_bufferLog.isChecked():
+        bufferLog.on = 'on'
+    else:
+        bufferLog.on = 'off'
+
+
+def updateInterfaceEnabled():
+    global program
+    if ui.radioButton_updateInterface.isChecked():
+        program.updateInterfaceEnabled = True
+    else:
+        program.updateInterfaceEnabled = False
+
 def exit():
     sys.exit(app.exec_())
 
@@ -475,7 +503,7 @@ bufferLog = Log(ui.textBrowser_Buffer, maxElements=15)
 # updateInterfaceFunctions é um dicionario que contem algumas funcoes de atualizacao da interface
 # ele é passado como parametro na criacao da classe program, para que essas funcoes possam ser chamadas por ela
 updateInterfaceFunctions = {1: updateP1Interface, 2: updateP2Interface, 3: updateP3Interface, 4: updateP4Interface, 'updatePlot': updatePlot}
-program = Program(ui.doubleSpinBox_UpdateTime.value() * 1000, errorLog, bufferLog, updateInterfaceFunctions)
+program = Program(ui.doubleSpinBox_UpdateTime.value() * 1000, errorLog, bufferLog, updateInterfaceFunctions)#, updateCounterMax=[6, 3,0,3])
 updateConstants()
 
 
@@ -483,8 +511,14 @@ ui.pushButton_SaveFile.clicked.connect(beginDataSave)  # botão para iniciar gra
 ui.pushButton_StopSaveFile.clicked.connect(stopDataSave)  # botão para parar a gravação de dados txt
 ui.pushButton_PauseProgram.clicked.connect(program.stopProgram)  # botão para pausar o programa
 ui.restoreDefaultAlarmPushButton.clicked.connect(setDefaultAlarms)
+
+
 ui.lineEdit_WheelPosMin.editingFinished.connect(updateConstants)
 ui.lineEdit_WheelPosMax.editingFinished.connect(updateConstants)
+ui.updateCounterP1.valueChanged.connect(updateConstants)
+ui.updateCounterP2.valueChanged.connect(updateConstants)
+ui.updateCounterP3.valueChanged.connect(updateConstants)
+ui.updateCounterP4.valueChanged.connect(updateConstants)
 
 # ações
 ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
@@ -493,6 +527,12 @@ ui.pushButton_UpdatePorts.clicked.connect(updatePorts)  # botão para atualizar 
 ui.pushButton_SaveSetupValues.clicked.connect(saveSetup)  # botão para atualizar os dados de setup no arquivo txt
 ui.saveAlarmPushButton.clicked.connect(saveAlarm)
 ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interface
+
+ui.radioButton_errorLog.toggled.connect(logEnabled)
+ui.radioButton_bufferLog.toggled.connect(logEnabled)
+ui.radioButton_updateInterface.toggled.connect(updateInterfaceEnabled)
+
+
 ui.comboBox_SerialPorts.addItems(listSerialPorts())  # mostra as portas seriais disponíveis
 ui.comboBox_Baudrate.addItems(["115200", "38400", "1200", "2400", "9600", "19200", "57600" ])  # mostra os baudrates disponíveis
 #ui.comboBox_Baudrate.currentIndexChanged.connect(selection_baudrate)
