@@ -111,8 +111,8 @@ class Data:
             self.dic['tps'] = self.dicRaw['tps']
             self.dic['oleoP'] = round(float(self.dicRaw['oleoP'] * 0.001), 4)
             self.dic['fuelP'] = round(float(self.dicRaw['fuelP'] * 0.001), 4)
-            self.dic['rearBrakeP'] = round(self.dicRaw['rearBrakeP'] * 0.02536, 1)
-            self.dic['frontBrakeP'] = round(self.dicRaw['frontBrakeP'] * 0.02536, 1)
+            self.dic['rearBrakeP'] = round(self.dicRaw['rearBrakeP'] * 0.02536, 2)
+            self.dic['frontBrakeP'] = round(self.dicRaw['frontBrakeP'] * 0.02536, 2)
             if self.wheelPosMax - self.wheelPosMin != 0:
                 self.dic['volPos'] = round(((self.dicRaw['volPos'] - self.wheelPosMin) * 240 / (self.wheelPosMax - self.wheelPosMin) - 120), 2)
             self.dic['injectors'] = self.dicRaw['injectors']
