@@ -137,8 +137,8 @@ class Data:
                 key = self.p3Order[i]
                 self.dicRaw[key] =  (buffer[j] << 8) + buffer[j+1]
 
-            self.dicRaw['releBomba'] = int((buffer[22] & 128) >> 7) #consertar
-            self.dicRaw['releVent'] = int((buffer[6] & 8) >> 3)
+            self.dicRaw['releBomba'] = int((buffer[22] & 128) >> 7)
+            self.dicRaw['releVent'] = int((buffer[22] & 8) >> 3)
             self.dicRaw['mata'] = int((buffer[22] & 32) >> 5)
             self.dicRaw['gpsLat'] = (buffer[23] << 16) + (buffer[24] << 8) + buffer[25]
             self.dicRaw['gpsLong'] = (buffer[26] << 16) + (buffer[27] << 8) + buffer[28]
@@ -165,9 +165,9 @@ class Data:
             self.dic['tempVent'] = self.dicRaw['tempVent']
             self.dic['tempBomba'] = self.dicRaw['tempBomba']
             self.dic['runners'] = self.dicRaw['runners']
-            self.dic['releVent'] = self.dicRaw['releVent']
-            self.dic['releBomba'] = self.dicRaw['releBomba']
-            self.dic['mata'] = self.dicRaw['mata']
+            self.dic['releVent'] = 'ON' if self.dicRaw['releVent'] == 1 else 'OFF'
+            self.dic['releBomba'] = 'ON' if self.dicRaw['releBomba'] == 1 else 'OFF'
+            self.dic['mata'] = 'ON' if self.dicRaw['mata'] == 1 else 'OFF'
             self.dic['gpsLat'] = self.dicRaw['gpsLat']
             self.dic['gpsLong'] = self.dicRaw['gpsLong']
             self.dic['gpsNS'] = self.dicRaw['gpsNS']

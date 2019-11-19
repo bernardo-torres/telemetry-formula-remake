@@ -36,7 +36,7 @@ uint16_t acelX_DE = 0, //Aceleração no eixo X da placa dianteira esquerda
      Beacon = 0;
 
 /*Variáveis do Pacote 2 -> 30Hz*/
-unsigned long ext1_DE = 0, //Extensômetro 1 da placa dianteira esquerda
+uint32_t ext1_DE = 0, //Extensômetro 1 da placa dianteira esquerda
        ext2_DE = 0, //Extensômetro 2 da placa dianteira esquerda
        ext3_DE = 0, //Extensômetro 3 da placa dianteira esquerda
        ext1_DD = 0, //Extensômetro 1 da placa dianteira direita
@@ -124,7 +124,21 @@ void loop()
 
  aux = i*65790;
  ext2_DD = aux;
- 
+ ext2_DE = 1000*i;
+ ext2_TE = TIMERCOUNT;
+
+ PresFreio_D = 50*i;
+ PresFreio_T = 25*i*i;
+ if(i>120){
+      AcioBomba = 1;
+      AcioVent = 0;
+      AcioMata = 1;
+  }
+  else{
+      AcioBomba = 0;
+      AcioVent = 1;
+      AcioMata = 0;  
+  }
 
  if( i == 255 ){
    i = 0;
@@ -140,7 +154,7 @@ if (TIMERCOUNT%2 == 0){
   Serial.write(buffer2, 34);
   Serial.write(buffer4, 42);
 }
-if(TIMERCOUNT%5 == 0){
+if(TIMERCOUNT%6 == 0){
   Serial.write(buffer3, 42);
  }
 TIMERCOUNT++;
@@ -243,7 +257,7 @@ void updateBuffer(){
     buffer3[19] = TempBomba;
     buffer3[20] = PosRunners>>8;
     buffer3[21] = PosRunners;
-    buffer3[22] = (AcioVent>>8) | (AcioBomba<<7) | (AcioMata<<5);
+    buffer3[22] = (AcioVent<<3) | (AcioBomba<<7) | (AcioMata<<5);
     buffer3[23] = GPS_Lat>>16;
     buffer3[24] = GPS_Lat>>8;
     buffer3[25] = GPS_Lat;

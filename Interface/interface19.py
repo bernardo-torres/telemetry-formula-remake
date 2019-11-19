@@ -61,6 +61,14 @@ def updatePorts():
     ui.comboBox_SerialPorts.clear()
     ui.comboBox_SerialPorts.addItems(listSerialPorts())
 
+def displayErrorMessage(text):
+    dlg = QMessageBox(None)
+    dlg.setWindowTitle("Error!")
+    dlg.setIcon(QMessageBox.Warning)
+    dlg.setText(
+     "<center>" + text + "<center>")
+    dlg.exec_()
+
 
 # Lista as portas seriais disponiveis. Retorna uma lista com os nomes das portas
 def listSerialPorts():
@@ -105,9 +113,10 @@ def startProgram():
         program.stop = 0
         # program.lapTimeFile.startDataSave("tempos_de_volta")
         program.updateTime = ui.doubleSpinBox_UpdateTime.value() * 1000
-        program.program()
-
-        print("Saiu do programa")
+        if ui.lineEdit_SampleRate1.text() == "" or ui.lineEdit_SampleRate2.text() == "" or ui.lineEdit_SampleRate3.text() == "" or ui.lineEdit_SampleRate4.text() == "":
+            displayErrorMessage("Inserir taxa de amostragem dos pacotes")
+        else:
+            program.program()
 
 # O erro de porta serial é analisado pela exceção serial.SerialException. Esse erro é tratado pausando o programa e
 # utilizando uma caixa de diálogo, a qual informa ao usuário o erro encontrado
@@ -230,12 +239,17 @@ def checkAlarm(data, key, tableWidget, i):
 # desejado, definir a formatação, nesse caso centralizado, e inserir na posição (linha, coluna) a variável item
 def updateP1Interface(data):
 
+    if ui.radioButton_applyFunctions.isChecked():
+        dataDictionary = data.dic
+    else:
+        dataDictionary = data.dicRaw
+
     elements = len(data.p1Order)
 
     # Itera na variavel que contem a ordem dos pacotes para pegar as respectivas chaves do dicionario
     for key, i in zip(data.p1Order, range(0, elements)):
         # Cria elemento da tabela, faz o alinhamento e coloca valor
-        item = QTableWidgetItem(str(data.dic[key]))
+        item = QTableWidgetItem(str(dataDictionary[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package1.setItem(i, 0, item)
         # Alarmes
@@ -265,9 +279,14 @@ def update_diagramagg(data):
 # Funcionaento semelhante ao do pacote 1
 def updateP2Interface(data):
 
+    if ui.radioButton_applyFunctions.isChecked():
+        dataDictionary = data.dic
+    else:
+        dataDictionary = data.dicRaw
+
     elements = len(data.p2Order)
     for key, i in zip(data.p2Order, range(0, elements)):
-        item = QTableWidgetItem(str(data.dic[key]))
+        item = QTableWidgetItem(str(dataDictionary[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package2.setItem(i, 0, item)
 
@@ -277,14 +296,16 @@ def updateP2Interface(data):
             setFieldBackground(ui.tableWidget_Package2, QtGui.QColor(255, 255, 255), i)
 
     if ((data.dic['rearBrakeP'] + data.dic['frontBrakeP']) != 0):  # Verificação necessária para que não ocorra divisão por zero
-        ui.progressBar_FrontBreakBalance.setValue(100 * data.dic['frontBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP']))  # porcentagem da pressão referente ao freio dianteiro
-        ui.progressBar_FrontBreakBalance.setValue(100 * data.dic['rearBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP'])) # traseiro
+        ui.progressBar_FrontBrakeBalance.setValue(100 * data.dic['frontBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP']))  # porcentagem da pressão referente ao freio dianteiro
+        ui.progressBar_RearBrakeBalance.setValue(100 * data.dic['rearBrakeP'] / (data.dic['rearBrakeP'] + data.dic['frontBrakeP'])) # traseiro
 
     # atualiza gauges
     ui.progressBar_FrontBreakPressure.setValue(data.dic['frontBrakeP'])
     ui.label_65.setText(str(data.dic['frontBrakeP']))
     ui.label_69.setText(str(data.dic['rearBrakeP']))
+    # distribuicao dos freios
     ui.progressBar_RearBreakPressure.setValue(data.dic['rearBrakeP'])
+
 
     ui.progressBar_FuelPressure.setValue(data.dic['fuelP'])
     ui.label_17.setText(str(data.dic['fuelP']))
@@ -305,9 +326,14 @@ def updateP2Interface(data):
 # Funcionaento semelhante ao do pacote 1
 def updateP3Interface(data):
 
+    if ui.radioButton_applyFunctions.isChecked():
+        dataDictionary = data.dic
+    else:
+        dataDictionary = data.dicRaw
+
     elements = len(data.p3Order)
     for key, i in zip(data.p3Order, range(0, elements)):
-        item = QTableWidgetItem(str(data.dic[key]))
+        item = QTableWidgetItem(str(dataDictionary[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_Package3.setItem(i, 0, item)
 
@@ -355,12 +381,12 @@ def updateP3Interface(data):
         item = ui.tableWidget_Package3.item(3, 1)
         item.setBackground(QtGui.QColor(255, 255, 255))"""
 
-    if (int(data.dic['releVent']) == 1):
+    if (int(data.dicRaw['releVent']) == 1):
         ui.radioButton_FanRelay.setChecked(False)
     else:
         ui.radioButton_FanRelay.setChecked(True)
 
-    if (int(data.dic['releBomba']) == 1):
+    if (int(data.dicRaw['releBomba']) == 1):
         ui.radioButton_FuelPumpRelay.setChecked(False)
     else:
         ui.radioButton_FuelPumpRelay.setChecked(True)
@@ -372,9 +398,14 @@ def updateP3Interface(data):
 # Funcionaento semelhante ao do pacote 1
 def updateP4Interface(data):
 
+    if ui.radioButton_applyFunctions.isChecked():
+        dataDictionary = data.dic
+    else:
+        dataDictionary = data.dicRaw
+
     elements = len(data.p4Order)
     for key, i in zip(data.p4Order, range(0, elements)):
-        item = QTableWidgetItem(str(data.dic[key]))
+        item = QTableWidgetItem(str(dataDictionary[key]))
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         ui.tableWidget_StrainGauge.setItem(i, 0, item)
 
@@ -462,7 +493,7 @@ def selectFile():
         return
 
 
-def logEnabled(log):
+def logEnabled():
     global errorLog, bufferLog
     if ui.radioButton_errorLog.isChecked():
         errorLog.on = 'on'
@@ -499,6 +530,7 @@ ui.setupUi(MainWindow)
 # Classes globais
 errorLog = Log(ui.errorLog, maxElements=70)
 bufferLog = Log(ui.textBrowser_Buffer, maxElements=15)
+logEnabled()
 
 # updateInterfaceFunctions é um dicionario que contem algumas funcoes de atualizacao da interface
 # ele é passado como parametro na criacao da classe program, para que essas funcoes possam ser chamadas por ela
