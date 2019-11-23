@@ -54,8 +54,11 @@ class Program():
             if len(self.buffer) != 0:
                 # chamada da função updateDataAndInterface para analisar os dados recebidos atualizar os mostradores da interface
                 self.updateData(self.buffer, int(self.buffer[0]))
+                if self.dataFile.save == 1:
+                    self.saveLine(self.buffer, int(self.buffer[0]))
                 if self.updateInterfaceEnabled:
                     self.updateInterface(self.buffer, int(self.buffer[0]))
+
 
             # Apos updateTime segundos, chama funcao program() novamente
             QtCore.QTimer.singleShot(self.updateTime, lambda: self.program())
@@ -78,14 +81,14 @@ class Program():
         else:
             self.updateCounter[packID-1] += 1
 
-        # Grava linha buffer no arquivo
-        if self.dataFile.save == 1:
-            string = self.data.createPackString(packID)
-            self.dataFile.writeRow(string)
-
         # Atualiza o mostrador textBrowser_Buffer com as ultimas listas de dados recebidas.
         self.lastBuffers.writeLog(vectorToString(buffer, ' ', addNewLine=False))
 
+    def saveLine(self, buffer, packID):
+        # Grava linha buffer no arquivo
+
+        string = self.data.createPackString(packID)
+        self.dataFile.writeRow(string)
 
     # Le buffer da porta serial. bufferSize é uma lista com os tamanhos dos pacotes e firstByteValues
     # é uma lista com os numeros dos pacotes (1,2,3,4)
