@@ -1,10 +1,10 @@
-# -*- mode: python -*-
+# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
 
 
 a = Analysis(['interface19.py'],
-             pathex=['C:\\Users\\Be\\github\\TelemRemake\\Interface'],
+             pathex=['C:\\Users\\befto\\github\\TelemRemake\\Interface'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -33,4 +33,5 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
+               upx_exclude=[],
                name='interface19')
