@@ -108,7 +108,7 @@ class Data:
                 key = self.p2Order[i]
                 self.dicRaw[key] =  (buffer[j] << 8) + buffer[j+1]
 
-            self.dic['tps'] = self.dicRaw['tps']
+            self.dic['tps'] = 0.1*self.dicRaw['tps']
             self.dic['oleoP'] = round(float(self.dicRaw['oleoP'] * 0.001), 4)
             self.dic['fuelP'] = round(float(self.dicRaw['fuelP'] * 0.001), 4)
             self.dic['rearBrakeP'] = round(self.dicRaw['rearBrakeP'] * 0.02536, 2)
@@ -116,7 +116,7 @@ class Data:
             if self.wheelPosMax - self.wheelPosMin != 0:
                 self.dic['volPos'] = round(((self.dicRaw['volPos'] - self.wheelPosMin) * 240 / (self.wheelPosMax - self.wheelPosMin) - 120), 2)
             self.dic['injectors'] = self.dicRaw['injectors']
-            self.dic['correnteBat'] = self.dicRaw['correnteBat']
+            self.dic['correnteBat'] = round(self.dicRaw['correnteBat'] * 0.014652, 3) - 29.3
             self.dic['suspDE'] = self.dicRaw['suspDE']
             self.dic['suspDD'] = self.dicRaw['suspDD']
             self.dic['suspTE'] = self.dicRaw['suspTE']

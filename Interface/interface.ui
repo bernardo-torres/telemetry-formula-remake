@@ -69,7 +69,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>65</y>
+         <y>50</y>
          <width>69</width>
          <height>20</height>
         </rect>
@@ -79,7 +79,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>91</y>
+         <y>80</y>
          <width>75</width>
          <height>23</height>
         </rect>
@@ -134,7 +134,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Incoming buffers</string>
+        <string>Incoming data</string>
        </property>
       </widget>
       <widget class="QRadioButton" name="radioButton_bufferLog">
@@ -846,7 +846,7 @@
         <item>
          <widget class="QPushButton" name="restoreDefaultAlarmPushButton">
           <property name="text">
-           <string>RESTORE DEAFULT</string>
+           <string>RESTORE DEFAULT</string>
           </property>
          </widget>
         </item>
@@ -1023,13 +1023,13 @@
       <property name="geometry">
        <rect>
         <x>490</x>
-        <y>290</y>
+        <y>300</y>
         <width>151</width>
-        <height>101</height>
+        <height>91</height>
        </rect>
       </property>
       <property name="title">
-       <string>LAP TIME</string>
+       <string/>
       </property>
      </widget>
     </widget>
@@ -1389,19 +1389,19 @@
        <rect>
         <x>530</x>
         <y>20</y>
-        <width>171</width>
+        <width>131</width>
         <height>211</height>
        </rect>
       </property>
       <property name="title">
-       <string>MOS ACTIVATION</string>
+       <string>MOS </string>
       </property>
       <widget class="QGroupBox" name="groupBox_21">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>121</width>
+         <width>101</width>
          <height>41</height>
         </rect>
        </property>
@@ -1413,7 +1413,7 @@
          <rect>
           <x>20</x>
           <y>10</y>
-          <width>81</width>
+          <width>91</width>
           <height>21</height>
          </rect>
         </property>
@@ -1427,7 +1427,7 @@
         <rect>
          <x>10</x>
          <y>90</y>
-         <width>121</width>
+         <width>111</width>
          <height>41</height>
         </rect>
        </property>
@@ -1437,7 +1437,7 @@
        <widget class="QRadioButton" name="radioButton_FuelPumpRelay">
         <property name="geometry">
          <rect>
-          <x>20</x>
+          <x>10</x>
           <y>10</y>
           <width>101</width>
           <height>17</height>
@@ -1462,7 +1462,7 @@
         <rect>
          <x>10</x>
          <y>150</y>
-         <width>121</width>
+         <width>111</width>
          <height>41</height>
         </rect>
        </property>
@@ -1617,7 +1617,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Rear Break</string>
+        <string>Rear Brake</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_66">
@@ -1630,7 +1630,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Front Break</string>
+        <string>Front Brake</string>
        </property>
       </widget>
       <widget class="QProgressBar" name="progressBar_RearBrakeBalance">
@@ -1657,7 +1657,7 @@
        </rect>
       </property>
       <property name="title">
-       <string>FRONT BREAK PRESSURE</string>
+       <string>FRONT BRAKE PRESSURE</string>
       </property>
       <widget class="QProgressBar" name="progressBar_FrontBreakPressure">
        <property name="geometry">
@@ -1718,7 +1718,7 @@
        </rect>
       </property>
       <property name="title">
-       <string>REAR BREAK PRESSURE</string>
+       <string>REAR BRAKE PRESSURE</string>
       </property>
       <widget class="QProgressBar" name="progressBar_RearBreakPressure">
        <property name="geometry">
@@ -2103,125 +2103,6 @@
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_5">
-     <attribute name="title">
-      <string>Strain Gauge</string>
-     </attribute>
-     <widget class="QGroupBox" name="groupBox_20">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>20</y>
-        <width>661</width>
-        <height>341</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>STRAIN GAUGE</string>
-      </property>
-      <widget class="QProgressBar" name="progressBar_WeightDistribuition4">
-       <property name="geometry">
-        <rect>
-         <x>530</x>
-         <y>180</y>
-         <width>31</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="maximum">
-        <number>150</number>
-       </property>
-       <property name="value">
-        <number>24</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="format">
-        <string>%p</string>
-       </property>
-      </widget>
-      <widget class="QProgressBar" name="progressBar_WeightDistribuition3">
-       <property name="geometry">
-        <rect>
-         <x>470</x>
-         <y>180</y>
-         <width>31</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="maximum">
-        <number>150</number>
-       </property>
-       <property name="value">
-        <number>24</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="format">
-        <string>%p</string>
-       </property>
-      </widget>
-      <widget class="QProgressBar" name="progressBar_WeightDistribuition2">
-       <property name="geometry">
-        <rect>
-         <x>530</x>
-         <y>90</y>
-         <width>31</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="maximum">
-        <number>150</number>
-       </property>
-       <property name="value">
-        <number>24</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="format">
-        <string>%p</string>
-       </property>
-      </widget>
-      <widget class="QProgressBar" name="progressBar_WeightDistribuition1">
-       <property name="geometry">
-        <rect>
-         <x>470</x>
-         <y>90</y>
-         <width>31</width>
-         <height>61</height>
-        </rect>
-       </property>
-       <property name="maximum">
-        <number>150</number>
-       </property>
-       <property name="value">
-        <number>24</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="format">
-        <string>%p</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_129">
-       <property name="geometry">
-        <rect>
-         <x>460</x>
-         <y>40</y>
-         <width>121</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Weight Distribuition (Kg)</string>
-       </property>
-      </widget>
-     </widget>
-    </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
       <string>Error Log</string>
@@ -2259,7 +2140,7 @@
      <rect>
       <x>1210</x>
       <y>560</y>
-      <width>91</width>
+      <width>71</width>
       <height>31</height>
      </rect>
     </property>
@@ -2277,7 +2158,7 @@
      <rect>
       <x>1210</x>
       <y>410</y>
-      <width>111</width>
+      <width>71</width>
       <height>41</height>
      </rect>
     </property>
@@ -2287,7 +2168,7 @@
      </font>
     </property>
     <property name="text">
-     <string>PAUSE PROGRAM</string>
+     <string>PAUSE</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_StartProgram">
@@ -2295,7 +2176,7 @@
      <rect>
       <x>1210</x>
       <y>370</y>
-      <width>111</width>
+      <width>71</width>
       <height>41</height>
      </rect>
     </property>
@@ -2305,15 +2186,15 @@
      </font>
     </property>
     <property name="text">
-     <string>START PROGRAM</string>
+     <string>START</string>
     </property>
    </widget>
    <widget class="QGroupBox" name="groupBox_18">
     <property name="geometry">
      <rect>
-      <x>670</x>
+      <x>690</x>
       <y>0</y>
-      <width>541</width>
+      <width>511</width>
       <height>751</height>
      </rect>
     </property>
@@ -2330,8 +2211,8 @@
       <rect>
        <x>20</x>
        <y>20</y>
-       <width>251</width>
-       <height>391</height>
+       <width>227</width>
+       <height>385</height>
       </rect>
      </property>
      <property name="font">
@@ -2358,7 +2239,7 @@
       <bool>true</bool>
      </attribute>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>90</number>
+      <number>80</number>
      </attribute>
      <attribute name="horizontalHeaderHighlightSections">
       <bool>true</bool>
@@ -2688,6 +2569,12 @@
        <height>20</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PACK 1&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
@@ -2695,10 +2582,10 @@
     <widget class="QTableWidget" name="tableWidget_Package2">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>250</x>
        <y>370</y>
-       <width>271</width>
-       <height>311</height>
+       <width>245</width>
+       <height>308</height>
       </rect>
      </property>
      <property name="font">
@@ -2710,7 +2597,7 @@
       <bool>true</bool>
      </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>90</number>
+      <number>80</number>
      </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
       <number>19</number>
@@ -2988,11 +2875,17 @@
     <widget class="QLabel" name="label_44">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>270</x>
        <y>370</y>
-       <width>71</width>
+       <width>41</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PACK 2&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -3001,11 +2894,17 @@
     <widget class="QLabel" name="label_39">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>270</x>
        <y>20</y>
        <width>71</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PACK 3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -3014,10 +2913,10 @@
     <widget class="QTableWidget" name="tableWidget_Package3">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>250</x>
        <y>20</y>
-       <width>271</width>
-       <height>371</height>
+       <width>248</width>
+       <height>348</height>
       </rect>
      </property>
      <property name="font">
@@ -3030,7 +2929,7 @@
       <bool>true</bool>
      </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>90</number>
+      <number>80</number>
      </attribute>
      <attribute name="horizontalHeaderHighlightSections">
       <bool>true</bool>
@@ -3358,16 +3257,16 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>400</y>
-       <width>251</width>
-       <height>281</height>
+       <y>405</y>
+       <width>216</width>
+       <height>272</height>
       </rect>
      </property>
      <property name="alternatingRowColors">
       <bool>true</bool>
      </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>90</number>
+      <number>80</number>
      </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
       <number>19</number>
@@ -3577,22 +3476,34 @@
      </item>
      <item row="8" column="1">
       <property name="text">
-       <string>-</string>
+       <string>MPa</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
       </property>
      </item>
      <item row="9" column="1">
       <property name="text">
-       <string>-</string>
+       <string>MPa</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
       </property>
      </item>
      <item row="10" column="1">
       <property name="text">
-       <string>-</string>
+       <string>MPa</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
       </property>
      </item>
      <item row="11" column="1">
       <property name="text">
-       <string>-</string>
+       <string>MPa</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignCenter</set>
       </property>
      </item>
      <item row="12" column="0">
@@ -3612,6 +3523,25 @@
       </property>
      </item>
     </widget>
+    <widget class="QLabel" name="label_46">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>410</y>
+       <width>41</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PACK 4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
     <zorder>tableWidget_Package1</zorder>
     <zorder>label_38</zorder>
     <zorder>tableWidget_Package3</zorder>
@@ -3619,6 +3549,7 @@
     <zorder>tableWidget_Package2</zorder>
     <zorder>label_44</zorder>
     <zorder>tableWidget_StrainGauge</zorder>
+    <zorder>label_46</zorder>
    </widget>
    <widget class="QLabel" name="label_28">
     <property name="geometry">

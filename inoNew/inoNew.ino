@@ -126,6 +126,7 @@ void loop()
  ext2_DD = aux;
  ext2_DE = 1000*i;
  ext2_TE = TIMERCOUNT;
+ BatCor = i;
 
  PresFreio_D = 50*i;
  PresFreio_T = 25*i*i;
