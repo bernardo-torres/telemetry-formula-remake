@@ -11,6 +11,10 @@ import serial
 from Classes import Data, File, Log, vectorToString
 from Program import Program
 from interface_generated import Ui_MainWindow
+from webapp import Web_App_Server
+
+
+
 
 
 # A função loadSetup atualiza os campos que já haviam sido definidos em utilizações ateriores da interface
@@ -514,6 +518,8 @@ def updateInterfaceEnabled():
         program.updateInterfaceEnabled = False
 
 def exit():
+    global thread2
+    thread2.exitFlag = 1
     sys.exit(app.exec_())
 
 
@@ -535,9 +541,15 @@ logEnabled()
 # updateInterfaceFunctions é um dicionario que contem algumas funcoes de atualizacao da interface
 # ele é passado como parametro na criacao da classe program, para que essas funcoes possam ser chamadas por ela
 updateInterfaceFunctions = {1: updateP1Interface, 2: updateP2Interface, 3: updateP3Interface, 4: updateP4Interface, 'updatePlot': updatePlot}
+
+
 program = Program(ui.doubleSpinBox_UpdateTime.value() * 1000, errorLog, bufferLog, updateInterfaceFunctions)#, updateCounterMax=[6, 3,0,3])
 updateConstants()
 
+thread2 = Web_App_Server("Servidor", program.data.dic)
+thread2.start()
+
+print("Teste")
 
 ui.pushButton_SaveFile.clicked.connect(beginDataSave)  # botão para iniciar gravação de dados no txt
 ui.pushButton_StopSaveFile.clicked.connect(stopDataSave)  # botão para parar a gravação de dados txt
