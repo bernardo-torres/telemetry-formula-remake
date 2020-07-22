@@ -5,7 +5,7 @@
 ## Como utilizar
 ### Arquivos
 
-Baixe os arquivos do repositório. O executável do programa se encontra na pasta *dist*, com o nome interface19.exe. Recomendo criar um atalho para esse .exe caso não queira abrir essa pasta sempre que for utilizar o programa. Para executar e utilizar o programa, só é necessário baixar a pasta *dist*.
+Baixe os arquivos do repositório. O executável do programa se encontra na pasta *dist*, com o nome interface19.exe. É recomendado criar um atalho para esse .exe caso não queira abrir essa pasta sempre que for utilizar o programa. Para executar e utilizar o programa, só é necessário baixar a pasta *dist*.
 
 ### Utilizando o programa
 ## Configurações
@@ -16,7 +16,7 @@ Selecione a porta serial na qual está conectado o dispositivo receptor (como o 
 
 Em seguida, confira se o Baud Rate da comunicação está configurado com o mesmo valor do Baud Rate do dispositivo receptor.
 
-O *update time* é o tempo, em segundos, entre o fim de uma atualização da interface e o inicio da próxima. Nesse caso, a atualização da interface não se refere à atualização dos campos de dados, mas  à frequência de chamada da função principal, que é responsável por executar todos os comandos, como leitura da porta serial, gravação no arquivo, etc.
+O *update time* é o tempo, em segundos, entre o fim de uma atualização da interface e o inicio da próxima. Nesse caso, a atualização da interface não se refere à atualização dos campos de dados, mas  à frequência de chamada da função principal, que é responsável por executar todos os comandos, como leitura da porta serial, gravação no arquivo, etc. Não é recomendado alterar esse valor, a não ser que esteja ocorrendo algum problema de desempenho.
 
 O *update counter* é uma configuração auxiliar que permite que o usuário escolha a frequência de atualização dos dados de cada pacote, para melhorar o desempenho do programa. Se em P1 estiver configurado em 6, isso quer dizer que a interface vai esperar receber 6 frames do pacote 1 para atualizar os dados do respectivo pacote. Isso não interfere no processo de gravação: todos os 6 valores não mostrados dos dados estarão registrados no arquivo de gravação da mesma forma.
 
