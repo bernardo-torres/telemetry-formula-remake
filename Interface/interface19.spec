@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['interface19.py'],
-             pathex=['C:\\Users\\befto\\github\\TelemRemake\\Interface'],
+             pathex=['C:\\Users\\Be\\github\\TelemRemake\\Interface'],
              binaries=[],
              datas=[],
              hiddenimports=[],

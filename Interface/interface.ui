@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Telemetry Formula SAE UFMG</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="tabWidget">
@@ -2245,7 +2245,7 @@
       <bool>true</bool>
      </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
-      <number>19</number>
+      <number>21</number>
      </attribute>
      <row>
       <property name="text">
@@ -2600,7 +2600,7 @@
       <number>80</number>
      </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
-      <number>19</number>
+      <number>21</number>
      </attribute>
      <row>
       <property name="text">
@@ -2934,11 +2934,11 @@
      <attribute name="horizontalHeaderHighlightSections">
       <bool>true</bool>
      </attribute>
-     <attribute name="verticalHeaderDefaultSectionSize">
-      <number>18</number>
-     </attribute>
      <attribute name="verticalHeaderMinimumSectionSize">
       <number>17</number>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>18</number>
      </attribute>
      <row>
       <property name="text">
@@ -3269,7 +3269,7 @@
       <number>80</number>
      </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
-      <number>19</number>
+      <number>21</number>
      </attribute>
      <row>
       <property name="text">

@@ -2,9 +2,10 @@
 
 # Form implementation generated from reading ui file 'interface.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
+
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from pyqtgraph import PlotWidget
@@ -797,7 +798,7 @@ class Ui_MainWindow(object):
         self.tableWidget_Package1.horizontalHeader().setVisible(True)
         self.tableWidget_Package1.horizontalHeader().setDefaultSectionSize(80)
         self.tableWidget_Package1.horizontalHeader().setHighlightSections(True)
-        self.tableWidget_Package1.verticalHeader().setDefaultSectionSize(19)
+        self.tableWidget_Package1.verticalHeader().setDefaultSectionSize(21)
         self.label_38 = QtWidgets.QLabel(self.groupBox_18)
         self.label_38.setGeometry(QtCore.QRect(30, 20, 41, 20))
         font = QtGui.QFont()
@@ -918,7 +919,7 @@ class Ui_MainWindow(object):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidget_Package2.setItem(14, 1, item)
         self.tableWidget_Package2.horizontalHeader().setDefaultSectionSize(80)
-        self.tableWidget_Package2.verticalHeader().setDefaultSectionSize(19)
+        self.tableWidget_Package2.verticalHeader().setDefaultSectionSize(21)
         self.label_44 = QtWidgets.QLabel(self.groupBox_18)
         self.label_44.setGeometry(QtCore.QRect(270, 370, 41, 20))
         font = QtGui.QFont()
@@ -1170,7 +1171,7 @@ class Ui_MainWindow(object):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidget_StrainGauge.setItem(12, 1, item)
         self.tableWidget_StrainGauge.horizontalHeader().setDefaultSectionSize(80)
-        self.tableWidget_StrainGauge.verticalHeader().setDefaultSectionSize(19)
+        self.tableWidget_StrainGauge.verticalHeader().setDefaultSectionSize(21)
         self.label_46 = QtWidgets.QLabel(self.groupBox_18)
         self.label_46.setGeometry(QtCore.QRect(30, 410, 41, 16))
         font = QtGui.QFont()
@@ -1233,7 +1234,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Telemetry Formula SAE UFMG"))
         self.groupBox.setTitle(_translate("MainWindow", "SERIAL PORT"))
         self.label_2.setText(_translate("MainWindow", "Serial Res. Name"))
         self.pushButton_UpdatePorts.setText(_translate("MainWindow", "Update Ports"))
@@ -1644,6 +1645,7 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionUpdate_Serial_Ports.setText(_translate("MainWindow", "Update Serial Ports"))
+
 
 
 if __name__ == "__main__":
