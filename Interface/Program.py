@@ -3,6 +3,7 @@ import serial
 from Classes import Data, File, Log, vectorToString
 from PyQt5 import QtCore
 import time
+from webapp import Web_App_Server
 
 
 # Classe que executa o programa
@@ -12,6 +13,9 @@ class Program():
         self.updateTime = updateTime
 
         self.data = Data()
+        
+        self.Web_App = Web_App_Server("Servidor Web", self.data)
+        self.Web_App.start()
         self.dataFile = File()
         # self.lapTimeFile = File()
         self.lastBuffers = bufferLog
