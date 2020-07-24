@@ -175,6 +175,25 @@
         <bool>false</bool>
        </property>
       </widget>
+      <widget class="QRadioButton" name="radioButton_webApp">
+       <property name="geometry">
+        <rect>
+         <x>190</x>
+         <y>40</y>
+         <width>101</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>WebApp ON</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <property name="autoExclusive">
+        <bool>false</bool>
+       </property>
+      </widget>
      </widget>
      <widget class="QGroupBox" name="groupBox_16">
       <property name="geometry">
@@ -2245,7 +2264,7 @@
       <bool>true</bool>
      </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
-      <number>19</number>
+      <number>21</number>
      </attribute>
      <row>
       <property name="text">
@@ -2600,7 +2619,7 @@
       <number>80</number>
      </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
-      <number>19</number>
+      <number>21</number>
      </attribute>
      <row>
       <property name="text">
@@ -2934,11 +2953,11 @@
      <attribute name="horizontalHeaderHighlightSections">
       <bool>true</bool>
      </attribute>
-     <attribute name="verticalHeaderDefaultSectionSize">
-      <number>18</number>
-     </attribute>
      <attribute name="verticalHeaderMinimumSectionSize">
       <number>17</number>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>18</number>
      </attribute>
      <row>
       <property name="text">
@@ -3269,7 +3288,7 @@
       <number>80</number>
      </attribute>
      <attribute name="verticalHeaderDefaultSectionSize">
-      <number>19</number>
+      <number>21</number>
      </attribute>
      <row>
       <property name="text">

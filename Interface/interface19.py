@@ -517,6 +517,12 @@ def updateInterfaceEnabled():
     else:
         program.updateInterfaceEnabled = False
 
+
+def webAppEnable():
+    if ui.radioButton_webApp.isChecked():
+        print('Web app on ')
+
+
 def exit():
     global thread2
     thread2.exitFlag = 1
@@ -546,7 +552,7 @@ updateInterfaceFunctions = {1: updateP1Interface, 2: updateP2Interface, 3: updat
 program = Program(ui.doubleSpinBox_UpdateTime.value() * 1000, errorLog, bufferLog, updateInterfaceFunctions)#, updateCounterMax=[6, 3,0,3])
 updateConstants()
 
-thread2 = Web_App_Server("Servidor", program.data.dic)
+thread2 = Web_App_Server("Servidor")
 thread2.start()
 
 print("Teste")
@@ -575,6 +581,7 @@ ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interfac
 ui.radioButton_errorLog.toggled.connect(logEnabled)
 ui.radioButton_bufferLog.toggled.connect(logEnabled)
 ui.radioButton_updateInterface.toggled.connect(updateInterfaceEnabled)
+ui.radioButton_webApp.toggled.connect(webAppEnable)
 
 
 ui.comboBox_SerialPorts.addItems(listSerialPorts())  # mostra as portas seriais disponíveis

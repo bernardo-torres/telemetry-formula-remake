@@ -2,9 +2,10 @@
 
 # Form implementation generated from reading ui file 'interface.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
+
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from pyqtgraph import PlotWidget
@@ -58,6 +59,11 @@ class Ui_MainWindow(object):
         self.radioButton_applyFunctions.setChecked(True)
         self.radioButton_applyFunctions.setAutoExclusive(False)
         self.radioButton_applyFunctions.setObjectName("radioButton_applyFunctions")
+        self.radioButton_webApp = QtWidgets.QRadioButton(self.groupBox_3)
+        self.radioButton_webApp.setGeometry(QtCore.QRect(190, 40, 101, 21))
+        self.radioButton_webApp.setChecked(False)
+        self.radioButton_webApp.setAutoExclusive(False)
+        self.radioButton_webApp.setObjectName("radioButton_webApp")
         self.groupBox_16 = QtWidgets.QGroupBox(self.tab)
         self.groupBox_16.setGeometry(QtCore.QRect(10, 290, 201, 101))
         self.groupBox_16.setObjectName("groupBox_16")
@@ -797,7 +803,7 @@ class Ui_MainWindow(object):
         self.tableWidget_Package1.horizontalHeader().setVisible(True)
         self.tableWidget_Package1.horizontalHeader().setDefaultSectionSize(80)
         self.tableWidget_Package1.horizontalHeader().setHighlightSections(True)
-        self.tableWidget_Package1.verticalHeader().setDefaultSectionSize(19)
+        self.tableWidget_Package1.verticalHeader().setDefaultSectionSize(21)
         self.label_38 = QtWidgets.QLabel(self.groupBox_18)
         self.label_38.setGeometry(QtCore.QRect(30, 20, 41, 20))
         font = QtGui.QFont()
@@ -918,7 +924,7 @@ class Ui_MainWindow(object):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidget_Package2.setItem(14, 1, item)
         self.tableWidget_Package2.horizontalHeader().setDefaultSectionSize(80)
-        self.tableWidget_Package2.verticalHeader().setDefaultSectionSize(19)
+        self.tableWidget_Package2.verticalHeader().setDefaultSectionSize(21)
         self.label_44 = QtWidgets.QLabel(self.groupBox_18)
         self.label_44.setGeometry(QtCore.QRect(270, 370, 41, 20))
         font = QtGui.QFont()
@@ -1170,7 +1176,7 @@ class Ui_MainWindow(object):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.tableWidget_StrainGauge.setItem(12, 1, item)
         self.tableWidget_StrainGauge.horizontalHeader().setDefaultSectionSize(80)
-        self.tableWidget_StrainGauge.verticalHeader().setDefaultSectionSize(19)
+        self.tableWidget_StrainGauge.verticalHeader().setDefaultSectionSize(21)
         self.label_46 = QtWidgets.QLabel(self.groupBox_18)
         self.label_46.setGeometry(QtCore.QRect(30, 410, 41, 16))
         font = QtGui.QFont()
@@ -1242,6 +1248,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Incoming data"))
         self.radioButton_bufferLog.setText(_translate("MainWindow", "BufferView ON"))
         self.radioButton_applyFunctions.setText(_translate("MainWindow", "Apply Functions"))
+        self.radioButton_webApp.setText(_translate("MainWindow", "WebApp ON"))
         self.groupBox_16.setTitle(_translate("MainWindow", "WHEEL POSITION CALIBRATION"))
         self.label_29.setText(_translate("MainWindow", "Wheel Pos Max"))
         self.label_30.setText(_translate("MainWindow", "Wheel Pos Min"))
@@ -1644,6 +1651,7 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionUpdate_Serial_Ports.setText(_translate("MainWindow", "Update Serial Ports"))
+
 
 
 if __name__ == "__main__":
