@@ -4,6 +4,8 @@ import socketserver
 import threading
 import json
 
+
+
 def getHandler(Data):
     class CORSRequestHandler (http.server.SimpleHTTPRequestHandler):
         def end_headers(self):
@@ -20,21 +22,31 @@ def getHandler(Data):
 
 
 class Web_App_Server (threading.Thread):
-    def __init__(self, threadID, Data):
+    def __init__(self, threadID):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.PORT = 8078
+        self.exitFlag = 0
+        self.isRunning = False
+
+    def setData(self,Data):
         self.Handler = getHandler(Data)
-        self.exitFlag = 0
-    
+        
     def run(self):
-        self.exitFlag = 0
+        self.resume()
         with socketserver.TCPServer(("", self.PORT), self.Handler) as httpd:
             httpd.timeout = 5
-            print("serving at port", self.PORT)
             while self.exitFlag == 0:
-                httpd.handle_request()
-            threading.stop()
-    
+                if self.isRunning:
+                    httpd.handle_request()
+            
+    def pause(self):
+        self.isRunning = False
+
+    def resume(self):
+        print("serving at port", self.PORT)
+        self.isRunning = True
+        
     def stop(self):
-        self.exitFlag = 1
+        threading.stop()
+    

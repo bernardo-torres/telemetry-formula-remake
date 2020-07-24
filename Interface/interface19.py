@@ -9,10 +9,9 @@ import time
 
 import serial
 from Classes import Data, File, Log, vectorToString
-from Program import Program
+from Program import Program, Web_App
 from interface_generated import Ui_MainWindow
 from webapp import Web_App_Server
-
 
 
 
@@ -520,12 +519,18 @@ def updateInterfaceEnabled():
 
 def webAppEnable():
     if ui.radioButton_webApp.isChecked():
-        print('Web app on ')
-
+        if not(Web_App.is_alive()):
+            Web_App.start()
+        else: 
+            Web_App.resume()
+        print('Servindo para o Web App')
+    else: 
+        Web_App.pause()
+        print('Web App está desligado')
+ 
 
 def exit():
-    global thread2
-    thread2.exitFlag = 1
+    Web_App.stop()
     sys.exit(app.exec_())
 
 
@@ -552,8 +557,6 @@ updateInterfaceFunctions = {1: updateP1Interface, 2: updateP2Interface, 3: updat
 program = Program(ui.doubleSpinBox_UpdateTime.value() * 1000, errorLog, bufferLog, updateInterfaceFunctions)#, updateCounterMax=[6, 3,0,3])
 updateConstants()
 
-thread2 = Web_App_Server("Servidor")
-thread2.start()
 
 print("Teste")
 

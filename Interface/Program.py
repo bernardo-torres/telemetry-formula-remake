@@ -5,7 +5,7 @@ from PyQt5 import QtCore
 import time
 from webapp import Web_App_Server
 
-
+Web_App = Web_App = Web_App_Server("Servidor Web")
 # Classe que executa o programa
 class Program():
     def __init__(self, updateTime, errorLog, bufferLog, updateInterfaceFunctions, updateCounterMax=[0,0,0,0]):
@@ -14,8 +14,8 @@ class Program():
 
         self.data = Data()
         
-        self.Web_App = Web_App_Server("Servidor Web", self.data)
-        self.Web_App.start()
+        #Web_App = Web_App_Server("Servidor Web", self.data)
+        Web_App.setData(self.data)
         self.dataFile = File()
         # self.lapTimeFile = File()
         self.lastBuffers = bufferLog
