@@ -183,7 +183,7 @@ def beginDataSave():
     # fileInstance.writeRow("PACOTE3 2 ect batVoltage releBomba releVent pduTemp tempDiscoD tempDiscoE time3\n")
     fileInstance.writeRow("***\n\n")
 
-    ui.label_12.setText("Saving...")  # informa ao usuário a situação atual de gravação de dados
+    ui._12.setText("Saving...")  # informa ao usuário a situação atual de gravação de dados
 
 
 def stopDataSave():
@@ -517,17 +517,25 @@ def updateInterfaceEnabled():
         program.updateInterfaceEnabled = False
 
 
+# Botao start do web app
 def webAppEnable():
-    if ui.radioButton_webApp.isChecked():
-        if not(Web_App.is_alive()):
-            Web_App.start()
-        else: 
-            Web_App.resume()
-        print('Servindo para o Web App')
-    else: 
-        Web_App.pause()
-        print('Web App está desligado')
- 
+    # if ui.radioButton_webApp.isChecked():
+    #     if not(Web_App.is_alive()):
+    #         Web_App.start()
+    #     else:
+    #         Web_App.resume()
+    #     print('Servindo para o Web App')
+    # else:
+    #     Web_App.pause()
+    #     print('Web App está desligado')
+    print("Web app habilitado")
+    ui.label_web_app.setText("WEB APP ON")
+
+
+# Botao pause do web app
+def webAppDisable():
+    print("web app pausado")
+    ui.label_web_app.setText("WEB APP OFF")
 
 def exit():
     Web_App.stop()
@@ -578,13 +586,15 @@ ui.pushButton_Exit.clicked.connect(exit)  # botão para fechar a interface
 ui.pushButton_StartProgram.clicked.connect(startProgram)  # botão para iniciar o programa
 ui.pushButton_UpdatePorts.clicked.connect(updatePorts)  # botão para atualizar as portas seriis disponíveis
 ui.pushButton_SaveSetupValues.clicked.connect(saveSetup)  # botão para atualizar os dados de setup no arquivo txt
+ui.pushButton_webAppStart.clicked.connect(webAppEnable)
+ui.pushButton_webAppPause.clicked.connect(webAppDisable)
 ui.saveAlarmPushButton.clicked.connect(saveAlarm)
 ui.actionExit.triggered.connect(exit)  # realiza a ação para fechar a interface
 
 ui.radioButton_errorLog.toggled.connect(logEnabled)
 ui.radioButton_bufferLog.toggled.connect(logEnabled)
 ui.radioButton_updateInterface.toggled.connect(updateInterfaceEnabled)
-ui.radioButton_webApp.toggled.connect(webAppEnable)
+#ui.radioButton_webApp.toggled.connect(webAppEnable)
 
 
 ui.comboBox_SerialPorts.addItems(listSerialPorts())  # mostra as portas seriais disponíveis
