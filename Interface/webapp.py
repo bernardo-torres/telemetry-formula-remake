@@ -3,6 +3,7 @@ import http.server
 import socketserver
 import threading
 import json
+import time
 
 
 
@@ -39,6 +40,8 @@ class Web_App_Server (threading.Thread):
             while self.exitFlag == 0:
                 if self.isRunning:
                     httpd.handle_request()
+                else:
+                    time.sleep(1)        
             
     def pause(self):
         self.isRunning = False
