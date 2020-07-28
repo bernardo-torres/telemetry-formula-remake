@@ -519,14 +519,10 @@ def updateInterfaceEnabled():
 
 # Botao start do web app
 def webAppEnable():
-    # if ui.radioButton_webApp.isChecked():
-    #     if not(Web_App.is_alive()):
-    #         Web_App.start()
-    #     else:
-    #         Web_App.resume()
-    #     print('Servindo para o Web App')
-    # else:
-    #     Web_App.pause()
+    if not(Web_App.is_alive()):
+        Web_App.start()
+    else:
+         Web_App.resume()
     #     print('Web App está desligado')
     print("Web app habilitado")
     ui.label_web_app.setText("WEB APP ON")
@@ -534,8 +530,14 @@ def webAppEnable():
 
 # Botao pause do web app
 def webAppDisable():
-    print("web app pausado")
+    if Web_App.is_alive():
+        Web_App.pause()
+        print("web app pausado")
+    else:
+        print("O web app ainda não está ligado e não pode ser pausado")
     ui.label_web_app.setText("WEB APP OFF")
+    
+
 
 def exit():
     Web_App.stop()
