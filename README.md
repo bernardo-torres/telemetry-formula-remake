@@ -1,5 +1,8 @@
 # Telemetria
 
+## Introdução
+
+Programa utilizado pela equipe Formula SAE UFMG a partir ano de 2019 para visualização do sistema de telemetria do protótipo de competição. A interface gráfica recebe os dados pela porta serial do computador do usuário, que deve estar conectado ao rádio receptor.
 ![print1](/Images/interface_screenshot.png)
 
 ## Como utilizar
